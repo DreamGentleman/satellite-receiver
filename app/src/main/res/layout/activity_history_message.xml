@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#185266"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <Button
+        android:id="@+id/btn_short_message"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:background="@mipmap/ic_not_selected"
+        android:text="短消息"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/btn_government_affairs_message"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btn_government_affairs_message"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:background="@mipmap/ic_btn_selected"
+        android:text="政务消息"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@id/btn_short_message"
+        app:layout_constraintLeft_toRightOf="@id/btn_short_message"
+        app:layout_constraintRight_toLeftOf="@id/btn_typhoon"
+        app:layout_constraintTop_toTopOf="@id/btn_short_message" />
+
+    <Button
+        android:id="@+id/btn_typhoon"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:background="@mipmap/ic_btn_selected"
+        android:text="台风"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@id/btn_government_affairs_message"
+        app:layout_constraintLeft_toRightOf="@id/btn_government_affairs_message"
+        app:layout_constraintRight_toLeftOf="@id/btn_beidou_message"
+        app:layout_constraintTop_toTopOf="@id/btn_government_affairs_message" />
+
+    <Button
+        android:id="@+id/btn_beidou_message"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:background="@mipmap/ic_btn_selected"
+        android:text="北斗消息"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@id/btn_typhoon"
+        app:layout_constraintLeft_toRightOf="@id/btn_typhoon"
+        app:layout_constraintRight_toLeftOf="@id/btn_image"
+        app:layout_constraintTop_toTopOf="@id/btn_typhoon" />
+
+    <Button
+        android:id="@+id/btn_image"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:background="@mipmap/ic_btn_selected"
+        android:text="图片"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@id/btn_beidou_message"
+        app:layout_constraintLeft_toRightOf="@id/btn_beidou_message"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/btn_beidou_message" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_message"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_short_message" />
+</androidx.constraintlayout.widget.ConstraintLayout>

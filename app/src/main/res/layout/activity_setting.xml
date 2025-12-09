@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <View
+        android:id="@+id/v_list"
+        android:layout_width="300dp"
+        android:layout_height="0dp"
+        android:background="#185266"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/v_control"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:id="@+id/v_control"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#073F52"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/v_list"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_frequency_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text="频率设置"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="@id/v_list"
+        app:layout_constraintRight_toRightOf="@id/v_list"
+        app:layout_constraintTop_toTopOf="@id/v_list" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_frequency"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/v_list"
+        app:layout_constraintLeft_toLeftOf="@id/v_list"
+        app:layout_constraintRight_toRightOf="@id/v_list"
+        app:layout_constraintTop_toBottomOf="@id/tv_frequency_title" />
+
+    <TextView
+        android:id="@+id/tv_id_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="120dp"
+        android:text="ID："
+        android:textColor="#9CB2BA"
+        android:textSize="20sp"
+        app:layout_constraintLeft_toLeftOf="@id/v_control"
+        app:layout_constraintTop_toTopOf="@id/tv_frequency_title" />
+
+    <TextView
+        android:id="@+id/tv_id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1234567890"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/tv_id_title"
+        app:layout_constraintLeft_toRightOf="@id/tv_id_title"
+        app:layout_constraintTop_toTopOf="@id/tv_id_title" />
+
+    <TextView
+        android:id="@+id/tv_frequency_offset_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="150dp"
+        android:layout_marginTop="70dp"
+        android:text="频偏:"
+        android:textColor="#9CB2BA"
+        android:textSize="20sp"
+        app:layout_constraintRight_toRightOf="@id/tv_id_title"
+        app:layout_constraintTop_toBottomOf="@id/tv_id_title" />
+
+    <TextView
+        android:id="@+id/tv_frequency_offset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="180HZ"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/tv_frequency_offset_title"
+        app:layout_constraintLeft_toRightOf="@id/tv_frequency_offset_title"
+        app:layout_constraintTop_toTopOf="@id/tv_frequency_offset_title" />
+
+    <TextView
+        android:id="@+id/tv_frequency_offset_unit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="80dp"
+        android:text="微调"
+        android:textColor="#9CB2BA"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/tv_frequency_offset_title"
+        app:layout_constraintLeft_toRightOf="@id/tv_frequency_offset_title"
+        app:layout_constraintTop_toTopOf="@id/tv_frequency_offset_title" />
+
+    <ImageView
+        android:id="@+id/iv_increase_frequency"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
+        android:src="@mipmap/ic_increase_frequency"
+        app:layout_constraintLeft_toRightOf="@id/tv_frequency_offset_title"
+        app:layout_constraintTop_toBottomOf="@id/tv_frequency_offset_title" />
+
+    <ImageView
+        android:id="@+id/iv_decrease_frequency"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@mipmap/ic_decrease_frequency"
+        app:layout_constraintBottom_toBottomOf="@id/iv_increase_frequency"
+        app:layout_constraintLeft_toLeftOf="@id/tv_frequency_offset_unit"
+        app:layout_constraintTop_toTopOf="@id/iv_increase_frequency" />
+
+    <TextView
+        android:id="@+id/tv_auto_unlink_interval_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:text="自动拆链时间间隔："
+        android:textColor="#9CB2BA"
+        android:textSize="20sp"
+        app:layout_constraintLeft_toLeftOf="@id/tv_frequency_offset_title"
+        app:layout_constraintTop_toBottomOf="@id/iv_increase_frequency" />
+
+    <TextView
+        android:id="@+id/tv_auto_unlink_interval"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="60"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/tv_auto_unlink_interval_title"
+        app:layout_constraintLeft_toRightOf="@id/tv_auto_unlink_interval_title"
+        app:layout_constraintTop_toTopOf="@id/tv_auto_unlink_interval_title" />
+
+    <TextView
+        android:id="@+id/tv_auto_unlink_interval_unit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:text="分钟"
+        android:textColor="#9CB2BA"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/tv_auto_unlink_interval"
+        app:layout_constraintLeft_toRightOf="@id/tv_auto_unlink_interval"
+        app:layout_constraintTop_toTopOf="@id/tv_auto_unlink_interval" />
+
+    <ImageView
+        android:id="@+id/iv_frequency_lock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:src="@mipmap/ic_frequency_lock"
+        app:layout_constraintLeft_toLeftOf="@id/tv_auto_unlink_interval"
+        app:layout_constraintTop_toBottomOf="@id/tv_auto_unlink_interval"
+        app:layout_goneMarginTop="85dp" />
+
+    <TextView
+        android:id="@+id/tv_turn_on_bluetooth"
+        android:layout_width="150dp"
+        android:layout_height="50dp"
+        android:layout_marginRight="80dp"
+        android:background="@drawable/shape_frequency_setting_bg"
+        android:gravity="center"
+        android:text="打开蓝牙"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tv_id_title" />
+
+    <TextView
+        android:id="@+id/tv_frequency_setting"
+        android:layout_width="150dp"
+        android:layout_height="50dp"
+        android:background="@drawable/shape_frequency_setting_bg"
+        android:gravity="center"
+        android:text="设置"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_increase_frequency"
+        app:layout_constraintRight_toRightOf="@+id/tv_turn_on_bluetooth"
+        app:layout_constraintTop_toTopOf="@+id/iv_increase_frequency" />
+
+    <TextView
+        android:id="@+id/tv_frequency_lock_setting"
+        android:layout_width="150dp"
+        android:layout_height="50dp"
+        android:background="@drawable/shape_frequency_setting_bg"
+        android:gravity="center"
+        android:text="设置"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_auto_unlink_interval_title"
+        app:layout_constraintRight_toRightOf="@+id/tv_turn_on_bluetooth"
+        app:layout_constraintTop_toTopOf="@+id/tv_auto_unlink_interval_title" />
+</androidx.constraintlayout.widget.ConstraintLayout>

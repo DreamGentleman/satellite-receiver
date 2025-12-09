@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@mipmap/ic_splash"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tv_init"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:drawableRight="@mipmap/ic_setting_more"
+        android:gravity="center_vertical|left"
+        android:text="初始化配置文件完成"
+        android:textColor="@color/white"
+        android:textSize="30sp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tv_usb"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:drawableRight="@mipmap/ic_setting_more"
+        android:gravity="center_vertical|left"
+        android:text="USB通信串口已连接"
+        android:textColor="@color/white"
+        android:textSize="30sp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tv_sdr"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:drawableRight="@mipmap/ic_setting_more"
+        android:gravity="center_vertical|left"
+        android:text="SDR回复正常"
+        android:textColor="@color/white"
+        android:textSize="30sp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tv_frequency"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:drawableRight="@mipmap/ic_setting_more"
+        android:gravity="center_vertical|left"
+        android:text="设备接收机频率：8/10"
+        android:textColor="@color/white"
+        android:textSize="30sp"
+        android:visibility="gone" />
+</LinearLayout>
