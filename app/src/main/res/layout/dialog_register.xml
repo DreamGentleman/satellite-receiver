@@ -20,7 +20,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="请输入授权码"
-        android:text=""
+        android:text="MjAyNS0xMi0xNyAwMDowMDowMF8xNTY5NTM4NjM3ODM3ODMx"
         android:textColor="@color/white" />
 
     <LinearLayout

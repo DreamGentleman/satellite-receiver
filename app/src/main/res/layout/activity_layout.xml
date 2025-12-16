@@ -46,7 +46,6 @@
         android:background="#80FFFFFF"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/cb_1" />
-
     <CheckBox
         android:id="@+id/cb_2"
         android:layout_width="wrap_content"
@@ -57,7 +56,7 @@
         android:drawableLeft="@drawable/checkbox_selector"
         android:drawablePadding="15dp"
         android:gravity="center"
-        android:text="领海基线"
+        android:text="机轮拖网渔业禁渔线"
         android:textColor="@drawable/checkbox_selector_color"
         android:textSize="24sp"
         android:textStyle="bold"
@@ -73,7 +72,6 @@
         android:background="#80FFFFFF"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/cb_2" />
-
     <CheckBox
         android:id="@+id/cb_3"
         android:layout_width="wrap_content"
@@ -84,7 +82,7 @@
         android:drawableLeft="@drawable/checkbox_selector"
         android:drawablePadding="15dp"
         android:gravity="center"
-        android:text="中韩渔业协定水域"
+        android:text="领海基线"
         android:textColor="@drawable/checkbox_selector_color"
         android:textSize="24sp"
         android:textStyle="bold"
@@ -111,7 +109,7 @@
         android:drawableLeft="@drawable/checkbox_selector"
         android:drawablePadding="15dp"
         android:gravity="center"
-        android:text="中日渔业协定水域"
+        android:text="中韩渔业协定水域"
         android:textColor="@drawable/checkbox_selector_color"
         android:textSize="24sp"
         android:textStyle="bold"
@@ -138,7 +136,7 @@
         android:drawableLeft="@drawable/checkbox_selector"
         android:drawablePadding="15dp"
         android:gravity="center"
-        android:text="台风预警"
+        android:text="中日渔业协定水域"
         android:textColor="@drawable/checkbox_selector_color"
         android:textSize="24sp"
         android:textStyle="bold"
@@ -165,12 +163,39 @@
         android:drawableLeft="@drawable/checkbox_selector"
         android:drawablePadding="15dp"
         android:gravity="center"
-        android:text="气象信息"
+        android:text="台风预警"
         android:textColor="@drawable/checkbox_selector_color"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/v_5" />
+
+    <View
+        android:id="@+id/v_6"
+        android:layout_width="270dp"
+        android:layout_height="1dp"
+        android:layout_marginLeft="31dp"
+        android:layout_marginTop="7dp"
+        android:background="#80FFFFFF"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cb_6" />
+
+    <CheckBox
+        android:id="@+id/cb_7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="7dp"
+        android:button="@null"
+        android:drawableLeft="@drawable/checkbox_selector"
+        android:drawablePadding="15dp"
+        android:gravity="center"
+        android:text="气象信息"
+        android:textColor="@drawable/checkbox_selector_color"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/v_6" />
 
     <TextView
         android:id="@+id/tv_show_title"

@@ -135,6 +135,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
     private ActivityResultLauncher<Intent> sosLauncher;
     private ActivityResultLauncher<Intent> layoutLauncher;
     private LayerType selectedLayerType;
+    private WeatherBean selectedWeatherBean;
 
     public String loadJsonFromAssets(Context context, String fileName) {
         StringBuilder builder = new StringBuilder();
@@ -206,6 +207,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                             String sosContent = data.getStringExtra("handleSosSelected");
                             //TODO
                             boolean showFishing = sosContent.contains("渔场");
+                            boolean showNoFishLine = sosContent.contains("机轮拖网渔业禁渔线");
                             boolean showCoast = sosContent.contains("领海基线");
                             boolean showCKFA = sosContent.contains("中韩渔业协定水域");
                             boolean showCJFA = sosContent.contains("中日渔业协定水域");
@@ -214,6 +216,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
 
 
                             hideLayer(LayerType.FISHING_GROUND);
+                            hideLayer(LayerType.NO_FISHING_LINE);
                             hideLayer(LayerType.COAST_LINE);
                             hideLayer(LayerType.CKFA);
                             hideLayer(LayerType.CJFA);
@@ -222,6 +225,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
 
 
                             if (showFishing) showLayer(LayerType.FISHING_GROUND);
+                            if (showNoFishLine) showLayer(LayerType.NO_FISHING_LINE);
                             if (showCoast) showLayer(LayerType.COAST_LINE);
                             if (showCKFA) showLayer(LayerType.CKFA);
                             if (showCJFA) showLayer(LayerType.CJFA);
@@ -495,15 +499,22 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                                         handled = true;
                                         break;
                                         case NoticeType.NOTICE_WEATHER: {
-                                            speak("您有一条天气消息");
-                                            WeatherDialog dialog = WeatherDialog.newInstance(MainActivity.this, rowsBean.getTitle());
-                                            dialog.show();
-                                            dialogs.add(dialog);
-
                                             selectedLayerType = LayerType.RAINSTORM;
                                             Type type2 = new TypeToken<List<WeatherBean>>() {
                                             }.getType();
                                             List<WeatherBean> list2 = new Gson().fromJson(rowsBean.getContent(), type2);
+
+                                            if (list2 != null && !list2.isEmpty()) {
+                                                WeatherBean weatherBean = list2.get(0);
+                                                selectedWeatherBean = weatherBean;
+                                                String message = buildForecastText(weatherBean);
+                                                speak(message);
+                                                WeatherDialog dialog = WeatherDialog.newInstance(MainActivity.this, message, getWeather(weatherBean.getWeatherPhenomenon()));
+                                                dialog.show();
+                                                dialogs.add(dialog);
+                                            }
+
+
                                             for (int j = 0; j < list2.size(); j++) {
                                                 WeatherBean weatherBean = list2.get(j);
                                                 MapShape shape = new Gson().fromJson(weatherBean.getMapJson(), MapShape.class);
@@ -766,6 +777,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
 //        noticeList.add(new NoticeBean(NoticeBean.NOTICE_WEATHER, "[气象消息]当前天气晴朗", "接收时间:2025年10月09日 5时"));
         noticeListAdapter = new NoticeListAdapter(null);
         noticeListAdapter.setOnItemClickListener(new NoticeListAdapter.OnItemClickListener() {
+
             @Override
             public void onItemClick(int position) {
                 Last24HoursBean.RowsBean rowsBean = noticeListAdapter.getDataList().get(position);
@@ -813,9 +825,21 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                     }
                     break;
                     case NoticeType.NOTICE_WEATHER: {
-                        speak("您有一条天气消息");
-                        WeatherDialog dialog = WeatherDialog.newInstance(MainActivity.this, rowsBean.getTitle());
-                        dialog.show();
+                        Type type2 = new TypeToken<List<WeatherBean>>() {
+                        }.getType();
+                        List<WeatherBean> list2 = new Gson().fromJson(rowsBean.getContent(), type2);
+
+                        if (list2 != null && !list2.isEmpty()) {
+                            WeatherBean weatherBean = list2.get(0);
+                            String message = buildForecastText(weatherBean);
+                            speak(message);
+                            WeatherDialog dialog = WeatherDialog.newInstance(MainActivity.this, message, getWeather(weatherBean.getWeatherPhenomenon()));
+                            dialog.show();
+                            dialogs.add(dialog);
+                        }
+//                        speak("您有一条天气消息");
+//                        WeatherDialog dialog = WeatherDialog.newInstance(MainActivity.this, rowsBean.getTitle(), getWeather(weatherBean.getWeatherPhenomenon()));
+//                        dialog.show();
                     }
                     break;
                 }
@@ -962,8 +986,14 @@ public class MainActivity extends BaseActivity implements OperationCallback {
             startActivity(new Intent(MainActivity.this, SettingActivity.class));
         });
         findViewById(R.id.tv_weather).setOnClickListener(v -> {
-            WeatherDialog dialog = WeatherDialog.newInstance(MainActivity.this, "[青岛沿海]\n黄岛区大风黄色预警，预警起始时间:2024-07-1621 50:35，请过往船只注意并加强防御");
-            dialog.show();
+            if (selectedWeatherBean == null) {
+                Toast.makeText(this, "暂无最新天气信息！", Toast.LENGTH_SHORT).show();
+            } else {
+                String message = buildForecastText(selectedWeatherBean);
+                speak(message);
+                WeatherDialog dialog2 = WeatherDialog.newInstance(MainActivity.this, message, getWeather(selectedWeatherBean.getWeatherPhenomenon()));
+                dialog2.show();
+            }
         });
         findViewById(R.id.iv_sos).setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, SosActivity.class);
@@ -1008,7 +1038,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
         ivVolume.setSelected(true);
         ivVolume.setOnClickListener(v -> {
             if (turnOnNotice) {
-                 turnOnNotice = false;
+                turnOnNotice = false;
                 v.setSelected(false);
                 Toast.makeText(this, "语音通知已关闭！", Toast.LENGTH_SHORT).show();
             } else {
@@ -1607,13 +1637,16 @@ public class MainActivity extends BaseActivity implements OperationCallback {
 //            startTyphoonSimulation();
 //            initWind();
 //            initWeather();
+            selectedLayerType = LayerType.FISHING_GROUND;
 //            initFishingGround();
+            drawKmlFishingZone("yuqv.kml");
             selectedLayerType = LayerType.CJFA;
             drawKmlFishingZone("zhongri.kml");
             selectedLayerType = LayerType.CKFA;
             drawKmlFishingZone("zhonghan.kml");
-            selectedLayerType = LayerType.COAST_LINE;
+            selectedLayerType = LayerType.NO_FISHING_LINE;
             drawKmlFishingZone("jilun.kml");
+            selectedLayerType = LayerType.COAST_LINE;
             drawKmlFishingZone("linghai.kml");
 
         }, 5000L);
@@ -1655,6 +1688,8 @@ public class MainActivity extends BaseActivity implements OperationCallback {
 
                 JSONObject feature = features.getJSONObject(i);
                 JSONObject geometry = feature.getJSONObject("geometry");
+                JSONObject properties = feature.getJSONObject("properties");   // ⭐ 新增
+                String name = properties.optString("NAME", "");                // ⭐ 新增
                 String type = geometry.getString("type");
 
                 // 创建图层
@@ -1662,7 +1697,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
 
                 if (type.equals("Polygon")) {
                     JSONArray coords = geometry.getJSONArray("coordinates");
-                    drawOnePolygon(coords, layer.id);
+                    drawOnePolygon(coords, layer.id, name);    // ⭐ 传 name
 
                 } else if (type.equals("MultiPolygon")) {
                     JSONArray multi = geometry.getJSONArray("coordinates");
@@ -1670,7 +1705,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                     // MultiPolygon = 多个 polygon
                     for (int j = 0; j < multi.length(); j++) {
                         JSONArray poly = multi.getJSONArray(j);
-                        drawOnePolygon(poly, layer.id);
+                        drawOnePolygon(poly, layer.id, name);    // ⭐ 传 name
                     }
                 }
                 layerManager.addLayer(selectedLayerType, layer.id);
@@ -1684,45 +1719,82 @@ public class MainActivity extends BaseActivity implements OperationCallback {
 //                    -90.0
 //            );
 
-            Toast.makeText(this, "渔区全部绘制完成", Toast.LENGTH_LONG).show();
+//            Toast.makeText(this, "渔区全部绘制完成", Toast.LENGTH_LONG).show();
 
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "渔区绘制失败：" + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
-
-    private void drawOnePolygon(JSONArray polygonArray, long layerId) throws Exception {
-
-        // polygonArray = [ [ [lon,lat], [lon,lat], ... ] ]
-        // 外环在第一层，用 polygonArray.getJSONArray(0)
+    private void drawOnePolygon(JSONArray polygonArray, long layerId, String name)
+            throws Exception {
 
         JSONArray outerRing = polygonArray.getJSONArray(0);
 
-        // 创建面
-        VectorElement polygon = new VectorElement(layerId, VectorElement.TYPE_PLANE, "渔区");
+        // ===== 1. 画面 =====
+        VectorElement polygon = new VectorElement(
+                layerId, VectorElement.TYPE_PLANE, "渔区");
 
-        // 设置非常明显的样式
         polygon.attribute = "strokeColor:#FF0000; strokeWidth:20; fillColor:#55FF0000";
+        polygon.outlineWidth = "2";
 
-        // 添加点（GeoJSON 是 [lon, lat]）
+        double sumLon = 0;
+        double sumLat = 0;
+        int count = 0;
+
         for (int k = 0; k < outerRing.length(); k++) {
             JSONArray pt = outerRing.getJSONArray(k);
-
             double lon = pt.getDouble(0);
             double lat = pt.getDouble(1);
 
             polygon.geoPoints.add(new GeoPoint(lon, lat));
+
+            sumLon += lon;
+            sumLat += lat;
+            count++;
         }
 
-        // ⭐ 必须：闭合 polygon，否则 Bigemap 会崩溃
+        // 必须闭合
         if (!isClosed(polygon.geoPoints)) {
-            polygon.geoPoints.add(new GeoPoint(polygon.geoPoints.get(0).lon, polygon.geoPoints.get(0).lat));
+            polygon.geoPoints.add(new GeoPoint(
+                    polygon.geoPoints.get(0).lon,
+                    polygon.geoPoints.get(0).lat));
         }
 
-        // 绘制
-        mEarthFragment.drawElement(polygon, true);
+        long polygonId = mEarthFragment.drawElement(polygon, true);
+        layerManager.addLayer(selectedLayerType, polygonId);
+
+        // ===== 2. 画 NAME（用 Point + Label） =====
+        if (name != null && !name.isEmpty() && count > 0) {
+
+            double centerLon = sumLon / count;
+            double centerLat = sumLat / count;
+
+            VectorElement labelPoint = new VectorElement(
+                    layerId,
+                    VectorElement.TYPE_POINT,
+                    name
+            );
+
+            labelPoint.geoPoints.add(new GeoPoint(centerLon, centerLat));
+
+            // 不显示图标，只显示文字
+            labelPoint.showIcon = false;
+
+            // ⭐ Bigemap 的文字就是 Label
+            labelPoint.showLabel = true;
+            labelPoint.labelColor = "#FFFFFFFF";   // 白色
+            labelPoint.labelSize = "10";              // 字号
+            labelPoint.labelAlign = Constants.ICON_ALIGNMENT_CENTER_CENTER;
+
+            // 文字内容（不同版本用 description / name）
+            labelPoint.description = name;
+
+            long labelId = mEarthFragment.drawElement(labelPoint, true);
+            layerManager.addLayer(selectedLayerType, labelId);
+        }
     }
+
 
     private boolean isClosed(List<GeoPoint> pts) {
         if (pts.size() < 3) return false;
@@ -2419,5 +2491,81 @@ public class MainActivity extends BaseActivity implements OperationCallback {
     private GeoPoint computeLineCenter(List<GeoPoint> pts) {
         int mid = pts.size() / 2;
         return pts.get(mid);
+    }
+
+    public String buildForecastText(WeatherBean bean) {
+        if (bean == null) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        // 1. 预报时效
+        sb.append("未来（24）小时（")
+                .append(bean.getSeaArea())
+                .append("）区域，");
+
+        // 2. 经纬度范围
+        String[] lonArr = bean.getLongitudeRange().split("-");
+        String[] latArr = bean.getLatitudeRange().split("-");
+
+        sb.append("北纬")
+                .append(toDms(latArr[0]))
+                .append("，东经")
+                .append(toDms(lonArr[0]))
+                .append("，到北纬")
+                .append(toDms(latArr[1]))
+                .append("，东经")
+                .append(toDms(lonArr[1]))
+                .append("，");
+
+        // 3. 天气要素
+        sb.append("预计有")
+                .append(bean.getWeatherPhenomenon())
+                .append(bean.getWindDirection())
+                .append(bean.getWindForce())
+                .append("级")
+                .append("浪高")
+                .append(bean.getWaveHeight())
+                .append("米")
+                .append("能见度")
+                .append(bean.getVisibility())
+                .append("千米")
+                .append(TextUtils.isEmpty(bean.getRemark()) ? "。" : ("," + bean.getRemark()));
+
+        // 4. 备注（有才输出）
+        if (bean.getRemark() != null && !bean.getRemark().trim().isEmpty()) {
+            sb.append("（备注：")
+                    .append(bean.getRemark())
+                    .append("）");
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * 00-24 -> 24
+     */
+    private String parseForecastHour(String period) {
+        if (period == null || !period.contains("-")) {
+            return "";
+        }
+        String[] arr = period.split("-");
+        return arr[1];
+    }
+
+    /**
+     * 十进制度 -> 度分秒
+     * 37.1206 -> 37度07分14秒
+     */
+    private String toDms(String value) {
+        double d = Double.parseDouble(value);
+
+        int degree = (int) d;
+        double m1 = (d - degree) * 60;
+        int minute = (int) m1;
+        int second = (int) ((m1 - minute) * 60);
+
+        return degree + "度" + minute + "分" + second + "秒";
     }
 }

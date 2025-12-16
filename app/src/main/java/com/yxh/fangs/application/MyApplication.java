@@ -15,6 +15,7 @@ public class MyApplication extends Application {
 
     // 全局消息列表
     private final List<MessageResponse.MessageItem> data = new ArrayList<>();
+    public String showLayoutText = "";
 
     @Override
     public void onCreate() {

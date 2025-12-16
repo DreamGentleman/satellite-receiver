@@ -2,6 +2,7 @@ package com.yxh.fangs.ui.main;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -140,12 +141,17 @@ public class HistoryMessageActivity extends BaseActivity {
                     }
                     break;
                     case NoticeType.NOTICE_WEATHER: {
-                        Gson gson = new Gson();
-                        Type type = new TypeToken<List<WarnBean>>() {
+                        Type type2 = new TypeToken<List<WeatherBean>>() {
                         }.getType();
-                        List<WeatherBean> list = gson.fromJson(rowsBean.getContent(), type);
-                        WeatherDialog dialog = WeatherDialog.newInstance(HistoryMessageActivity.this, rowsBean.getTitle());
-                        dialog.show();
+                        List<WeatherBean> list2 = new Gson().fromJson(rowsBean.getContent(), type2);
+
+                        if (list2 != null && !list2.isEmpty()) {
+                            WeatherBean weatherBean = list2.get(0);
+                            String message = buildForecastText(weatherBean);
+//                            speak(message);
+                            WeatherDialog dialog = WeatherDialog.newInstance(HistoryMessageActivity.this, message, getWeather(weatherBean.getWeatherPhenomenon()));
+                            dialog.show();
+                        }
                     }
                     break;
                 }
@@ -168,34 +174,34 @@ public class HistoryMessageActivity extends BaseActivity {
         // 点击事件
         btnShortMsg.setOnClickListener(v -> {
             setSelected(btnShortMsg);
-            selectedType= NoticeType.NOTICE_SMS;
+            selectedType = NoticeType.NOTICE_SMS;
             loadMessagesByType(Message.NOTICE_SMS);   // 4
             adapter.setDataList(paseData(rows));
         });
 
         btnGovMsg.setOnClickListener(v -> {
-            selectedType= NoticeType.NOTICE_WEATHER;
+            selectedType = NoticeType.NOTICE_WEATHER;
             setSelected(btnGovMsg);
             loadMessagesByType(Message.NOTICE_WEATHER); // 6
             adapter.setDataList(paseData(rows));
         });
 
         btnTyphoon.setOnClickListener(v -> {
-            selectedType= NoticeType.NOTICE_TYPHOON;
+            selectedType = NoticeType.NOTICE_TYPHOON;
             setSelected(btnTyphoon);
             loadMessagesByType(Message.NOTICE_TYPHOON);  // 5
             adapter.setDataList(paseData(rows));
         });
 
         btnBeidou.setOnClickListener(v -> {
-            selectedType= NoticeType.NOTICE_BEIDOU;
+            selectedType = NoticeType.NOTICE_BEIDOU;
             setSelected(btnBeidou);
             loadMessagesByType(Message.NOTICE_BEIDOU);   // 1
             adapter.setDataList(paseData(rows));
         });
 
         btnImage.setOnClickListener(v -> {
-            selectedType= NoticeType.NOTICE_NOTICE_IMAGE;
+            selectedType = NoticeType.NOTICE_NOTICE_IMAGE;
             setSelected(btnImage);
             loadMessagesByType(Message.NOTICE_NOTICE_IMAGE); // 3
             adapter.setDataList(paseData(rows));
@@ -240,5 +246,131 @@ public class HistoryMessageActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         disposable.clear();
+    }
+
+    public String buildForecastText(WeatherBean bean) {
+        if (bean == null) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        // 1. 预报时效
+        sb.append("未来（24）小时（")
+                .append(bean.getSeaArea())
+                .append("）区域，");
+
+        // 2. 经纬度范围
+        String[] lonArr = bean.getLongitudeRange().split("-");
+        String[] latArr = bean.getLatitudeRange().split("-");
+
+        sb.append("北纬")
+                .append(toDms(latArr[0]))
+                .append("，东经")
+                .append(toDms(lonArr[0]))
+                .append("，到北纬")
+                .append(toDms(latArr[1]))
+                .append("，东经")
+                .append(toDms(lonArr[1]))
+                .append("，");
+
+        // 3. 天气要素
+        sb.append("预计有")
+                .append(bean.getWeatherPhenomenon())
+                .append(bean.getWindDirection())
+                .append(bean.getWindForce())
+                .append("级")
+                .append("浪高")
+                .append(bean.getWaveHeight())
+                .append("米")
+                .append("能见度")
+                .append(bean.getVisibility())
+                .append("千米")
+                .append(TextUtils.isEmpty(bean.getRemark()) ? "。" : ("," + bean.getRemark()));
+
+        // 4. 备注（有才输出）
+        if (bean.getRemark() != null && !bean.getRemark().trim().isEmpty()) {
+            sb.append("（备注：")
+                    .append(bean.getRemark())
+                    .append("）");
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * 00-24 -> 24
+     */
+    private String parseForecastHour(String period) {
+        if (period == null || !period.contains("-")) {
+            return "";
+        }
+        String[] arr = period.split("-");
+        return arr[1];
+    }
+
+    /**
+     * 十进制度 -> 度分秒
+     * 37.1206 -> 37度07分14秒
+     */
+    private String toDms(String value) {
+        double d = Double.parseDouble(value);
+
+        int degree = (int) d;
+        double m1 = (d - degree) * 60;
+        int minute = (int) m1;
+        int second = (int) ((m1 - minute) * 60);
+
+        return degree + "度" + minute + "分" + second + "秒";
+    }
+
+    private int getWeather(String weatherPhenomenon) {
+        switch (weatherPhenomenon) {
+            case "晴":
+                return R.mipmap.ic_fine;
+            case "多云":
+                return R.mipmap.ic_cloudy;
+            case "阴天":
+                return R.mipmap.ic_cloudy_sky;
+            case "雷阵雨":
+                return R.mipmap.ic_thunder_shower;
+            case "雷阵雨伴冰雹":
+                return R.mipmap.ic_thunderstorms_with_hail;
+            case "雨夹雪":
+                return R.mipmap.ic_sleet;
+            case "小雨":
+                return R.mipmap.ic_sprinkle;
+            case "中雨":
+                return R.mipmap.ic_moderate_rain;
+            case "大雨":
+                return R.mipmap.ic_heavy_rain;
+            case "暴雨":
+                return R.mipmap.ic_torrential_rain;
+            case "大暴雨":
+                return R.mipmap.ic_downpour;
+            case "特大暴雨":
+                return R.mipmap.ic_heavy_downpour;
+            case "小雪":
+                return R.mipmap.ic_scouther;
+            case "中雪":
+                return R.mipmap.ic_moderate_snow;
+            case "大雪":
+                return R.mipmap.ic_heavy_snow;
+            case "暴雪":
+                return R.mipmap.ic_blizzard;
+            case "雾":
+                return R.mipmap.ic_fog;
+            case "冻雨":
+                return R.mipmap.ic_ice_rain;
+            case "沙尘暴":
+                return R.mipmap.ic_sand_storm;
+            case "扬沙或浮尘":
+                return R.mipmap.ic_sand_or_dust;
+            case "强沙尘暴":
+                return R.mipmap.ic_strong_sandstorm;
+            case "霾":
+                return R.mipmap.ic_haze;
+        }
+        return R.mipmap.ic_fine;
     }
 }

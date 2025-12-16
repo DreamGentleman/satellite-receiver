@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.yxh.fangs.R;
@@ -19,16 +20,18 @@ public class WeatherDialog extends AlertDialog {
     private String mPositiveButton;
     private String mMessage;
     private int mLayoutResId;
+    private int mWeather;
 
-    public static WeatherDialog newInstance(final Context context, String message) {
-        return new WeatherDialog(context, message);
+    public static WeatherDialog newInstance(final Context context, String message, int weather) {
+        return new WeatherDialog(context, message, weather);
     }
 
-    public WeatherDialog(final Context context, String message) {
+    public WeatherDialog(final Context context, String message, int weather) {
         super(context);
         mLayoutResId = R.layout.dialog_weather;
         mContext = context;
         mMessage = message;
+        mWeather = weather;
     }
 
     @Override
@@ -41,6 +44,7 @@ public class WeatherDialog extends AlertDialog {
         TextView tvTime = (TextView) view.findViewById(R.id.tv_time);
         TextView tvMessage = (TextView) view.findViewById(R.id.tv_message);
         TextView tvSure = (TextView) view.findViewById(R.id.tv_sure);
+        ImageView ivWeather = (ImageView) view.findViewById(R.id.iv_weather);
         tvSure.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -51,7 +55,7 @@ public class WeatherDialog extends AlertDialog {
             }
         });
         tvMessage.setText(mMessage);
-
+        ivWeather.setImageResource(mWeather);
         setContentView(view);
         WindowManager.LayoutParams layoutParams = getWindow().getAttributes();
         layoutParams.width = (int) (getScreenWidth() * 0.45);

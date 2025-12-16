@@ -1,9 +1,10 @@
 package com.yxh.fangs.bean;
 
 public class KmlStyle {
-    String lineColor;   // Android 格式 #AARRGGBB
-    float lineWidth;
-    String fillColor;
+    private String lineColor;
+    private float lineWidth;
+    private String fillColor;
+    private boolean fill = true;
 
     public String getLineColor() {
         return lineColor == null ? "" : lineColor;
@@ -27,5 +28,13 @@ public class KmlStyle {
 
     public void setFillColor(String fillColor) {
         this.fillColor = fillColor;
+    }
+
+    public boolean isFill() {
+        return fill;
+    }
+
+    public void setFill(boolean fill) {
+        this.fill = fill;
     }
 }

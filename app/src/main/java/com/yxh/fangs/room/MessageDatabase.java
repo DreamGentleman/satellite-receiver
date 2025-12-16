@@ -11,7 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 import com.yxh.fangs.bean.Message;
 
 //exportSchema = false表示不生成数据库记录，不推荐，exportSchema默认为true
-@Database(entities = {Message.class}, version = 1, exportSchema = true)
+@Database(entities = {Message.class}, version = 1, exportSchema = false)
 public abstract class MessageDatabase extends RoomDatabase {
     private static MessageDatabase INSTANCE;
     private static final Object sLock = new Object();

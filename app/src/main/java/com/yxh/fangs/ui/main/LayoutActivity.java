@@ -2,6 +2,7 @@ package com.yxh.fangs.ui.main;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.TextView;
@@ -9,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import com.yxh.fangs.R;
+import com.yxh.fangs.application.MyApplication;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +25,7 @@ public class LayoutActivity extends BaseActivity {
     private CheckBox cb4;
     private CheckBox cb5;
     private CheckBox cb6;
+    private CheckBox cb7;
     /**
      * 所有 CheckBox 统一管理
      */
@@ -51,7 +54,32 @@ public class LayoutActivity extends BaseActivity {
         cb4 = findViewById(R.id.cb_4);
         cb5 = findViewById(R.id.cb_5);
         cb6 = findViewById(R.id.cb_6);
-
+        cb7 = findViewById(R.id.cb_7);
+        String sosContent = MyApplication.getInstance().showLayoutText;
+        if (TextUtils.isEmpty(sosContent)) {
+            cb1.setChecked(true);
+            cb2.setChecked(true);
+            cb3.setChecked(true);
+            cb4.setChecked(true);
+            cb5.setChecked(true);
+            cb6.setChecked(true);
+            cb7.setChecked(true);
+        } else {
+            boolean showFishing = sosContent.contains("渔场");
+            boolean showNoFishLine = sosContent.contains("机轮拖网渔业禁渔线");
+            boolean showCoast = sosContent.contains("领海基线");
+            boolean showCKFA = sosContent.contains("中韩渔业协定水域");
+            boolean showCJFA = sosContent.contains("中日渔业协定水域");
+            boolean showTyphoon = sosContent.contains("台风预警");
+            boolean showRain = sosContent.contains("气象信息");
+            cb1.setChecked(showFishing);
+            cb2.setChecked(showNoFishLine);
+            cb3.setChecked(showCoast);
+            cb4.setChecked(showCKFA);
+            cb5.setChecked(showCJFA);
+            cb6.setChecked(showTyphoon);
+            cb7.setChecked(showRain);
+        }
         // 初始化并加入列表
 //        addCheckBox(R.id.cb_1);
 //        addCheckBox(R.id.cb_2);
@@ -70,7 +98,9 @@ public class LayoutActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 Intent data = new Intent();
-                data.putExtra("handleSosSelected", handleSosSelected());
+                String value = handleSosSelected();
+                data.putExtra("handleSosSelected", value);
+                MyApplication.getInstance().showLayoutText = value;
                 setResult(RESULT_OK, data);
                 finish();
             }
@@ -115,7 +145,9 @@ public class LayoutActivity extends BaseActivity {
      */
     private String handleSosSelected() {
         selectLayout = "";
-        //TODO 没加渔场
+        if (cb1.isChecked()) {
+            selectLayout = selectLayout + "," + cb1.getText().toString();
+        }
         if (cb2.isChecked()) {
             selectLayout = selectLayout + "," + cb2.getText().toString();
         }
@@ -130,6 +162,9 @@ public class LayoutActivity extends BaseActivity {
         }
         if (cb6.isChecked()) {
             selectLayout = selectLayout + "," + cb6.getText().toString();
+        }
+        if (cb7.isChecked()) {
+            selectLayout = selectLayout + "," + cb7.getText().toString();
         }
         return selectLayout;
     }
