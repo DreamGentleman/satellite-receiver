@@ -3,10 +3,16 @@ package com.yxh.fangs.ui.dialog;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Build;
+import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,24 +20,41 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.yxh.fangs.R;
+import com.yxh.fangs.bean.SosEventResponse;
+import com.yxh.fangs.util.HttpUtils;
+import com.yxh.fangs.util.LogUtils;
+import com.yxh.fangs.util.UrlUtils;
+
+import java.util.concurrent.TimeUnit;
+
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 
 public class SosDialog extends AlertDialog {
+    private String mSosContent;
+    private String mSosType;
     private Context mContext;
     private OnPromptButtonClickedListener mPromptButtonClickedListener;
     private String mPositiveButton;
     private int mLayoutResId;
+    private TextView tvSos;
 
-    public static SosDialog newInstance(final Context context) {
-        return new SosDialog(context);
+    public static SosDialog newInstance(final Context context, String sosContent, String sosType) {
+        return new SosDialog(context, sosContent, sosType);
     }
 
-    public SosDialog(final Context context) {
+    public SosDialog(final Context context, String sosContent, String sosType) {
         super(context);
         mLayoutResId = R.layout.dialog_sos;
         mContext = context;
+        mSosContent = sosContent;
+        mSosType = sosType;
     }
 
     @Override
@@ -44,6 +67,7 @@ public class SosDialog extends AlertDialog {
         EditText etPassword = (EditText) view.findViewById(R.id.et_password);
         ImageView ivShowPassword = (ImageView) view.findViewById(R.id.iv_show_password);
         TextView tvSure = (TextView) view.findViewById(R.id.tv_sure);
+        tvSos = (TextView) view.findViewById(R.id.tv_sos);
         setPwdShowOrHide(etPassword, ivShowPassword);
         tvSure.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -129,6 +153,7 @@ public class SosDialog extends AlertDialog {
             editText.setSelection(editText.getText().length());
         });
     }
+
     private void fullScreenImmersive(View view) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -147,5 +172,98 @@ public class SosDialog extends AlertDialog {
         super.show();
         fullScreenImmersive(getWindow().getDecorView());
         this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+
+        startPolling();
     }
+
+    private Disposable pollingDisposable;
+
+    public void startPolling() {
+        stopPolling(); // 防止重复启动
+        pollingDisposable = Observable
+                // 立即执行一次，之后每 1 分钟一次
+                .interval(0, 1, TimeUnit.MINUTES)
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
+                .subscribe(tick -> {
+                    // 这里写你的轮询逻辑
+                    doPollingRequest();
+                }, throwable -> {
+                    // 一般 interval 不会进这里，兜底
+                    throwable.printStackTrace();
+                });
+    }
+
+    private void doPollingRequest() {
+        HttpUtils.postJson(UrlUtils.getSosEventStartUrl(), mSosContent, new HttpUtils.HttpCallback() {
+            @Override
+            public void onSuccess(String body) {
+                LogUtils.json(body);
+                Gson gson = new Gson();
+                SosEventResponse sosEventResponse = gson.fromJson(body, SosEventResponse.class);
+                if (sosEventResponse.getCode() == 200) {
+                    Toast.makeText(getContext(), "SOS求救信息已经发送成功！", Toast.LENGTH_SHORT).show();
+                } else {
+                    onError(sosEventResponse.getMsg());
+                }
+            }
+
+            @Override
+            public void onError(String msg) {
+                Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    public void stopPolling() {
+        if (pollingDisposable != null && !pollingDisposable.isDisposed()) {
+            pollingDisposable.dispose();
+            pollingDisposable = null;
+        }
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        View view = LayoutInflater.from(getContext())
+                .inflate(mLayoutResId, null);
+
+//        setContentView(view);
+        // ⭐ 在这里 findViewById（推荐）
+        initView(view);
+    }
+
+    private void initView(View view) {
+        String sosType = mSosType;
+        String text = getContext().getString(R.string.sos_sending_tip, sosType);
+
+        SpannableString spannable = new SpannableString(text);
+
+        int start = text.indexOf(sosType);
+        int end = start + sosType.length();
+
+        spannable.setSpan(
+                new ForegroundColorSpan(Color.parseColor("#F8E36F")),
+                start,
+                end,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        );
+
+        spannable.setSpan(
+                new StyleSpan(Typeface.BOLD),
+                start,
+                end,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        );
+
+        tvSos.setText(spannable);
+    }
+
+    @Override
+    public void dismiss() {
+        stopPolling();   // ⭐ 必须先停轮询
+        super.dismiss();
+    }
+
 }

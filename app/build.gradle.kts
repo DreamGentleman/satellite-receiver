@@ -97,4 +97,9 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
     implementation(libs.gson)
+    implementation(libs.room.runtime)
+    implementation(libs.room.paging)
+    implementation(libs.room.rxjava3)
+    // Java 用 annotationProcessor
+    annotationProcessor(libs.room.compiler)
 }

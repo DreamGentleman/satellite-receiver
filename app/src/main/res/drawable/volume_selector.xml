@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 选中 -->
+    <item android:drawable="@mipmap/ic_volume" android:state_selected="true" />
+
+    <!-- 未选中 -->
+    <item android:drawable="@mipmap/ic_volume_not" android:state_selected="false" />
+
+</selector>

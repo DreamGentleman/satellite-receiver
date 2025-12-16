@@ -1,23 +1,33 @@
 package com.yxh.fangs.ui.main;
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.graphics.Rect;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.Settings;
-import android.speech.tts.TextToSpeech;
+import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -32,102 +42,121 @@ import com.bigemap.bmcore.entity.Provider;
 import com.bigemap.bmcore.entity.VectorElement;
 import com.bigemap.bmcore.listener.OperationCallback;
 import com.bigemap.bmcore.sp.StyleUtils;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.Priority;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.yxh.fangs.R;
 import com.yxh.fangs.adapter.NoticeListAdapter;
-import com.yxh.fangs.application.MyApplication;
+import com.yxh.fangs.bean.BeidouBean;
 import com.yxh.fangs.bean.DeviceLocationRecordRequest;
 import com.yxh.fangs.bean.DeviceLocationRecordResponse;
 import com.yxh.fangs.bean.DeviceStatusChangeRequest;
+import com.yxh.fangs.bean.ImageBean;
+import com.yxh.fangs.bean.ImageCache;
+import com.yxh.fangs.bean.KmlStyle;
+import com.yxh.fangs.bean.Last24HoursBean;
 import com.yxh.fangs.bean.LocationBean;
-import com.yxh.fangs.bean.MessageResponse;
-import com.yxh.fangs.bean.NoticeBean;
+import com.yxh.fangs.bean.MapShape;
+import com.yxh.fangs.bean.Message;
+import com.yxh.fangs.bean.NoticeType;
 import com.yxh.fangs.bean.SosEventRequest;
 import com.yxh.fangs.bean.SosEventResponse;
 import com.yxh.fangs.bean.StatusLogResponse;
+import com.yxh.fangs.bean.TyphoonBean;
+import com.yxh.fangs.bean.WarnBean;
+import com.yxh.fangs.bean.WeatherBean;
+import com.yxh.fangs.room.MessageDatabase;
 import com.yxh.fangs.ui.dialog.MessageDialog;
 import com.yxh.fangs.ui.dialog.RemindDialog;
-import com.yxh.fangs.ui.dialog.SosDialog;
+import com.yxh.fangs.ui.dialog.Sos2Fragment;
 import com.yxh.fangs.ui.dialog.WeatherDialog;
-import com.yxh.fangs.util.BigemapEnhancedFishingRenderer;
+import com.yxh.fangs.util.AppConstants;
 import com.yxh.fangs.util.DeviceUtils;
 import com.yxh.fangs.util.HttpUtils;
+import com.yxh.fangs.util.LayerManager;
+import com.yxh.fangs.util.LayerType;
 import com.yxh.fangs.util.LogUtils;
+import com.yxh.fangs.util.SPUtils;
 import com.yxh.fangs.util.TTSManager;
 import com.yxh.fangs.util.UrlUtils;
 import com.yxh.fangs.util.Utils;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class MainActivity extends BaseActivity implements OperationCallback, TextToSpeech.OnInitListener {
-
+public class MainActivity extends BaseActivity implements OperationCallback {
+    private ArrayList<AlertDialog> dialogs = new ArrayList<>();
+    private static final String TAG_EARTH_FRAGMENT = "TAG_EARTH_FRAGMENT";
+    private static final String TAG_PAGE_ONE_FRAGMENT = "TAG_PAGE_ONE_FRAGMENT";
+    private static final String TAG_PAGE_TWO_FRAGMENT = "TAG_PAGE_TWO_FRAGMENT";
+    private static final String TEST_MAP_SOURCE_URL = "http://services.arcgisonline.com/ArcGIS/services/World_Imagery/MapServer?mapname=Layers&layer=_alllayers&format=PNG&level={z}&row={y}&column={x}";
+    private static final String TEST_MAP_SOURCE_URL1 = "https://webst0[1-4].is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&style=6";
+    private static final String TEST_MAP_SOURCE_URL2 = "https://wprd0[1-4].is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&style=8";
+    private static final String TEST_MAP_SOURCE_URL3 = "https://hssk.hngqyun.cn:9000/bigemap.6h6bjjiu/tiles/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiY3VzXzZucHJ1OXNmIiwiYSI6IjA3N2Fnc3F3OTN3dW03OXhtN2VtNDB0dnAiLCJ0Ijo0fQ.9gsbkTLAIbujYmFCgLdXX0b2KVM4DVuxG2ZDRj31PsQ";
     private EarthFragment mEarthFragment;
     // 标记地图是否已加载
     private boolean isEarthReady = false;
     private double longitudeData = 0.0;
     private double latitudeData = 0.0;
-    private static final String TAG_EARTH_FRAGMENT = "TAG_EARTH_FRAGMENT";
-    private static final String TAG_PAGE_ONE_FRAGMENT = "TAG_PAGE_ONE_FRAGMENT";
-    private static final String TAG_PAGE_TWO_FRAGMENT = "TAG_PAGE_TWO_FRAGMENT";
-
-    private static final String TEST_MAP_SOURCE_URL =
-            "http://services.arcgisonline.com/ArcGIS/services/World_Imagery/MapServer?mapname=Layers&layer=_alllayers&format=PNG&level={z}&row={y}&column={x}";
-    private static final String TEST_MAP_SOURCE_URL1 =
-            "https://webst0[1-4].is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&style=6";
-    private static final String TEST_MAP_SOURCE_URL2 =
-            "https://wprd0[1-4].is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&style=8";
-    private static final String TEST_MAP_SOURCE_URL3 =
-            "https://hssk.hngqyun.cn:9000/bigemap.6h6bjjiu/tiles/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiY3VzXzZucHJ1OXNmIiwiYSI6IjA3N2Fnc3F3OTN3dW03OXhtN2VtNDB0dnAiLCJ0Ijo0fQ.9gsbkTLAIbujYmFCgLdXX0b2KVM4DVuxG2ZDRj31PsQ";
-    private FusedLocationProviderClient fusedLocationClient;
-    private LocationRequest locationRequest;
-    private LocationCallback locationCallback;
     private TextView tvScrollingMessage;
-    private List<Long> typhoonLayerIds = new ArrayList<>();
-    private TextToSpeech tts;
-    private boolean isTtsReady;
+    private TextView tvValidityPeriod;
+    private final List<Long> typhoonLayerIds = new ArrayList<>();
     private Disposable disposable;
     private MessageDialog dialog;
     private boolean turnOnNotice = true;
+    private LocationManager locationManager;
+    private android.location.LocationListener gpsListener;
+    private LayerManager layerManager = new LayerManager();
+    private NoticeListAdapter noticeListAdapter;
+    private Disposable pollingDisposable;
+    private String readNotice = "";
+    private ActivityResultLauncher<Intent> sosLauncher;
+    private ActivityResultLauncher<Intent> layoutLauncher;
+    private LayerType selectedLayerType;
+
+    public String loadJsonFromAssets(Context context, String fileName) {
+        StringBuilder builder = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(context.getAssets().open(fileName), StandardCharsets.UTF_8))) {
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                builder.append(line);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return builder.toString();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // 使用 RxJava 进行异步初始化
-        Observable.fromCallable(() -> {
-                    initEngine();      // 引擎初始化
-                    copyFiles();       // 拷贝 assets
-                    return true;       // 占位返回
-                })
-                .subscribeOn(Schedulers.io())              // 上面 3 个操作放到 IO 线程
-                .observeOn(AndroidSchedulers.mainThread()) // 回主线程
-                .subscribe(result -> {
-                    initFragment();       // 创建 EarthFragment
-                }, throwable -> {
-                    throwable.printStackTrace();
-                    Toast.makeText(this, "初始化失败: " + throwable.getMessage(), Toast.LENGTH_LONG).show();
-                });
+        initMap();
         initLocation();
         // 检查并请求权限
         checkPermissionAndStartLocation();
@@ -138,10 +167,438 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
         //TODO 模拟消息
         initNotice();
         uploadDeviceLocation();
-        uploadReceiverStatusLog();
-//        TTSManager.getInstance().init(this, () -> {
-//            TTSManager.getInstance().speak("语音功能初始化成功！");
-//        });
+//        uploadReceiverStatusLog();
+        TTSManager.getInstance().init(this, () -> {
+            TTSManager.getInstance().speak("语音功能初始化成功！");
+        });
+        initDataBase();
+        initLicenseValidityPeriod();
+        initLast24HoursMessage();
+        initLaunch();
+    }
+
+    private void initLaunch() {
+        sosLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null) {
+                            boolean sosResult = data.getBooleanExtra("sos_result", false);
+                            String sosContent = data.getStringExtra("sos_content");
+                            String sosType = data.getStringExtra("sos_type");
+                            if (sosResult) {
+                                FragmentManager fm = getSupportFragmentManager();
+                                if (fm.findFragmentByTag("sos") == null) {
+                                    Sos2Fragment.newInstance(sosType, sosContent).show(fm, "sos");
+                                }
+                            }
+                        }
+                    }
+                }
+        );
+        layoutLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null) {
+                            String sosContent = data.getStringExtra("handleSosSelected");
+                            //TODO
+                            boolean showFishing = sosContent.contains("渔场");
+                            boolean showCoast = sosContent.contains("领海基线");
+                            boolean showCKFA = sosContent.contains("中韩渔业协定水域");
+                            boolean showCJFA = sosContent.contains("中日渔业协定水域");
+                            boolean showTyphoon = sosContent.contains("台风预警");
+                            boolean showRain = sosContent.contains("气象信息");
+
+
+                            hideLayer(LayerType.FISHING_GROUND);
+                            hideLayer(LayerType.COAST_LINE);
+                            hideLayer(LayerType.CKFA);
+                            hideLayer(LayerType.CJFA);
+                            hideLayer(LayerType.TYPHOON);
+                            hideLayer(LayerType.RAINSTORM);
+
+
+                            if (showFishing) showLayer(LayerType.FISHING_GROUND);
+                            if (showCoast) showLayer(LayerType.COAST_LINE);
+                            if (showCKFA) showLayer(LayerType.CKFA);
+                            if (showCJFA) showLayer(LayerType.CJFA);
+                            if (showTyphoon) showLayer(LayerType.TYPHOON);
+                            if (showRain) showLayer(LayerType.RAINSTORM);
+
+
+//                            if (sosContent.contains("渔场")) {
+//                                showLayer(LayerType.FISHING_GROUND);
+//                            } else {
+//                                hideLayer(LayerType.FISHING_GROUND);
+//                            }
+//                            if (sosContent.contains("领海基线")) {
+//                                showLayer(LayerType.COAST_LINE);
+//                            } else {
+//                                hideLayer(LayerType.COAST_LINE);
+//                            }
+//                            if (sosContent.contains("中韩渔业协定水域")) {
+//                                showLayer(LayerType.CKFA);
+//                            } else {
+//                                hideLayer(LayerType.CKFA);
+//                            }
+//                            if (sosContent.contains("中日渔业协定水域")) {
+//                                showLayer(LayerType.CJFA);
+//                            } else {
+//                                hideLayer(LayerType.CJFA);
+//                            }
+//                            if (sosContent.contains("台风预警")) {
+//                                showLayer(LayerType.TYPHOON);
+//                            } else {
+//                                hideLayer(LayerType.TYPHOON);
+//                            }
+//                            if (sosContent.contains("气象信息")) {
+//                                showLayer(LayerType.RAINSTORM);
+//                            } else {
+//                                hideLayer(LayerType.RAINSTORM);
+//                            }
+                        }
+                    }
+                }
+        );
+    }
+
+    private void initLast24HoursMessage() {
+        pollingDisposable = Observable
+                // 立即一次，之后每 30s
+                .interval(10, 30, TimeUnit.SECONDS).observeOn(Schedulers.io())   // 定时器在线程池跑
+                .subscribe(tick -> {
+                    HttpUtils.get(UrlUtils.history(1, 1000), new HttpUtils.HttpCallback() {
+                        @Override
+                        public void onSuccess(String body) {
+                            LogUtils.json(body);
+                            Gson gson = new Gson();
+                            Last24HoursBean last24HoursBean = gson.fromJson(body, Last24HoursBean.class);
+                            boolean handled = false;
+                            if (last24HoursBean.getCode() == 200) {
+                                noticeListAdapter.setDataList(last24HoursBean.getRows());
+
+                                for (int i = 0; i < last24HoursBean.getRows().size(); i++) {
+                                    Last24HoursBean.RowsBean rowsBean = last24HoursBean.getRows().get(i);
+                                    if (readNotice.contains(rowsBean.getId())) {
+                                        continue;
+                                    }
+                                    readNotice = readNotice + "," + rowsBean.getId();
+                                    if (!dialogs.isEmpty()) {
+                                        for (int i1 = 0; i1 < dialogs.size(); i1++) {
+                                            AlertDialog alertDialog = dialogs.get(i1);
+                                            if (alertDialog != null && alertDialog.isShowing()) {
+                                                alertDialog.dismiss();
+                                                dialogs.remove(alertDialog);
+                                            }
+                                        }
+                                    }
+                                    switch (rowsBean.getMessageType()) {
+                                        case NoticeType.NOTICE_BEIDOU: {
+                                            BeidouBean beidouBean = gson.fromJson(rowsBean.getContent(), BeidouBean.class);
+                                            String content = "北斗通道号为：" + beidouBean.getBeidouChannel() + "，卫星编号为：" + beidouBean.getSatelliteId() + "，信号强度：" + beidouBean.getSignalStrength();
+                                            speak("您有一条北斗消息，" + content);
+                                            MessageDialog dialog = MessageDialog.newInstance(MainActivity.this, rowsBean.getTitle(), content, rowsBean.getPublishTime());
+                                            dialog.show();
+                                            dialogs.add(dialog);
+                                        }
+                                        handled = true;
+                                        break;
+                                        case NoticeType.NOTICE_ALERT: {
+                                            WarnBean warnBean = gson.fromJson(rowsBean.getContent(), WarnBean.class);
+                                            String content = warnBean.getWarningLevel();
+                                            speak("您有一条预警信息，" + content);
+                                            MessageDialog dialog = MessageDialog.newInstance(MainActivity.this, rowsBean.getTitle(), content, rowsBean.getPublishTime());
+                                            dialog.show();
+                                            dialogs.add(dialog);
+
+                                            selectedLayerType = LayerType.RAINSTORM;
+                                            if (warnBean == null
+                                                    || warnBean.getWarningArea() == null
+                                                    || warnBean.getWarningArea().getCoordinates() == null) {
+                                                return;
+                                            }
+
+                                            WarnBean.WarningAreaBean area = warnBean.getWarningArea();
+                                            WarnBean.WarningAreaBean.CoordinatesBean c = area.getCoordinates();
+
+                                            switch (area.getType()) {
+
+                                                /* ======================
+                                                 * 1. 多边形预警 polygon
+                                                 * ====================== */
+                                                case "polygon": {
+
+                                                    if (c.getPoints() == null || c.getPoints().size() < 3)
+                                                        return;
+
+                                                    List<GeoPoint> geoPoints = new ArrayList<>();
+                                                    for (WarnBean.WarningAreaBean.CoordinatesBean.PointsBean p : c.getPoints()) {
+                                                        geoPoints.add(new GeoPoint(p.getLng(), p.getLat(), 0));
+                                                    }
+
+                                                    // 闭合（Bigemap 面必须闭合）
+                                                    GeoPoint first = geoPoints.get(0);
+                                                    GeoPoint last = geoPoints.get(geoPoints.size() - 1);
+                                                    if (first.lon != last.lon || first.lat != last.lat) {
+                                                        geoPoints.add(new GeoPoint(first.lon, first.lat, 0));
+                                                    }
+
+                                                    drawKmlPolygon(
+                                                            warnBean.getWarningLevel(),
+                                                            geoPoints,
+                                                            c.getColor(),
+                                                            c.getColor(),
+                                                            6
+                                                    );
+                                                    break;
+                                                }
+
+                                                /* ======================
+                                                 * 2. 圆形预警 circle
+                                                 * ====================== */
+                                                case "circle": {
+
+                                                    if (c.getCenter() == null) return;
+
+                                                    addTyphoonCircle(
+                                                            c.getCenter().getLng(),
+                                                            c.getCenter().getLat(),
+                                                            c.getColor(),
+                                                            c.getArea() > 0
+                                                                    ? Math.sqrt(c.getArea() / Math.PI)  // 有 area 就反算半径
+                                                                    : 100_000                            // 兜底 100km
+                                                            , warnBean.getWarningLevel()
+                                                    );
+                                                    break;
+                                                }
+
+                                                /* ======================
+                                                 * 3. 矩形预警 rectangle
+                                                 * ====================== */
+                                                case "rectangle": {
+
+                                                    if (c.getBounds() == null) return;
+
+                                                    drawRectangle(
+                                                            c.getBounds().getSw().getLng(),
+                                                            c.getBounds().getSw().getLat(),
+                                                            c.getBounds().getNe().getLng(),
+                                                            c.getBounds().getNe().getLat(),
+                                                            c.getColor(), warnBean.getWarningLevel()
+                                                    );
+                                                    break;
+                                                }
+
+                                                /* ======================
+                                                 * 4. 点预警 marker
+                                                 * ====================== */
+                                                case "marker": {
+
+                                                    if (c.getCenter() == null) return;
+
+                                                    int icon;
+                                                    switch (warnBean.getWarningLevel()) {
+                                                        case "红色预警":
+                                                            icon = R.mipmap.ic_sos_1;
+                                                            break;
+                                                        case "黄色预警":
+                                                            icon = R.mipmap.ic_sos_1;
+                                                            break;
+                                                        case "蓝色预警":
+                                                        default:
+                                                            icon = R.mipmap.ic_sos_1;
+                                                            break;
+                                                    }
+
+                                                    toAddPointInMap(
+                                                            c.getCenter().getLng(),
+                                                            c.getCenter().getLat(),
+                                                            icon,
+                                                            1.0f,
+                                                            0
+                                                    );
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        handled = true;
+                                        break;
+                                        case NoticeType.NOTICE_NOTICE_IMAGE: {
+                                            ImageBean imageBean = gson.fromJson(rowsBean.getContent(), ImageBean.class);
+                                            ImageCache.base64 = imageBean.getBase64();
+                                            speak("您有一条图片消息");
+                                            Intent intent = new Intent(MainActivity.this, ImageDetailActivity.class);
+                                            intent.putExtra("time", rowsBean.getPublishTime());
+                                            startActivity(intent);
+                                        }
+                                        handled = true;
+                                        break;
+                                        case NoticeType.NOTICE_SMS: {
+                                            speak("您有一条短消息，" + rowsBean.getTitle());
+                                            MessageDialog dialog = MessageDialog.newInstance(MainActivity.this, rowsBean.getTitle(), rowsBean.getContent(), rowsBean.getPublishTime());
+                                            dialog.show();
+                                            dialogs.add(dialog);
+                                        }
+                                        handled = true;
+                                        break;
+                                        case NoticeType.NOTICE_TYPHOON: {
+                                            TyphoonBean typhoonBean = gson.fromJson(rowsBean.getContent(), TyphoonBean.class);
+                                            speak("您有一条台风" + typhoonBean.getTyphoonName() + "的消息");
+                                            MessageDialog dialog = MessageDialog.newInstance(MainActivity.this, rowsBean.getTitle(), typhoonBean.getMovingDirection(), rowsBean.getTitle());
+                                            dialog.show();
+                                            dialogs.add(dialog);
+
+                                            selectedLayerType = LayerType.TYPHOON;
+                                            if (typhoonBean == null
+                                                    || typhoonBean.getTyphoonInfo() == null
+                                                    || typhoonBean.getTyphoonInfo().getMapData() == null
+                                                    || typhoonBean.getTyphoonInfo().getMapData().getCoordinates() == null) {
+                                                return;
+                                            }
+
+                                            TyphoonBean.TyphoonInfoBean.MapDataBean.CoordinatesBean c =
+                                                    typhoonBean.getTyphoonInfo().getMapData().getCoordinates();
+
+                                            /* =========================
+                                             * 1. 画台风路径（折线）
+                                             * ========================= */
+                                            List<GeoPoint> trackPoints = new ArrayList<>();
+                                            if (c.getPoints() != null) {
+                                                for (TyphoonBean.TyphoonInfoBean.MapDataBean.CoordinatesBean.PointsBean p
+                                                        : c.getPoints()) {
+                                                    trackPoints.add(new GeoPoint(p.getLng(), p.getLat()));
+                                                }
+                                            }
+
+                                            if (trackPoints.size() >= 2) {
+                                                drawTyphoonTrack(trackPoints);
+                                            }
+
+                                            /* =========================
+                                             * 2. 画台风中心风圈
+                                             * ========================= */
+                                            if (c.getCenter() != null) {
+
+                                                double lon = c.getCenter().getLng();
+                                                double lat = c.getCenter().getLat();
+                                                String color = c.getColor();
+
+                                                // 半径策略（你可以后续按风速算）
+                                                double radiusMeters = 100_000; // 100km 示例
+
+                                                addTyphoonCircle(lon, lat, color, radiusMeters);
+                                            }
+                                        }
+                                        handled = true;
+                                        break;
+                                        case NoticeType.NOTICE_WEATHER: {
+                                            speak("您有一条天气消息");
+                                            WeatherDialog dialog = WeatherDialog.newInstance(MainActivity.this, rowsBean.getTitle());
+                                            dialog.show();
+                                            dialogs.add(dialog);
+
+                                            selectedLayerType = LayerType.RAINSTORM;
+                                            Type type2 = new TypeToken<List<WeatherBean>>() {
+                                            }.getType();
+                                            List<WeatherBean> list2 = new Gson().fromJson(rowsBean.getContent(), type2);
+                                            for (int j = 0; j < list2.size(); j++) {
+                                                WeatherBean weatherBean = list2.get(j);
+                                                MapShape shape = new Gson().fromJson(weatherBean.getMapJson(), MapShape.class);
+                                                if ("circle".equals(shape.type)) {
+                                                    addTyphoonCircle(
+                                                            shape.coordinates.center.lng,
+                                                            shape.coordinates.center.lat,
+                                                            shape.coordinates.color,
+                                                            shape.coordinates.radius, ""
+                                                    );
+                                                    toAddPointInMap(shape.coordinates.center.lng, shape.coordinates.center.lat, getWeather(weatherBean.getWeatherPhenomenon()), 1f, 0);
+                                                } else if ("rectangle".equals(shape.type)) {
+                                                    drawRectangle(
+                                                            shape.coordinates.bounds.sw.lng,
+                                                            shape.coordinates.bounds.sw.lat,
+                                                            shape.coordinates.bounds.ne.lng,
+                                                            shape.coordinates.bounds.ne.lat,
+                                                            shape.coordinates.color, ""
+                                                    );
+                                                    toAddPointInMap(shape.coordinates.center.lng, shape.coordinates.center.lat, getWeather(weatherBean.getWeatherPhenomenon()), 1f, 0);
+                                                }
+                                            }
+                                        }
+                                        handled = true;
+                                        break;
+                                    }
+                                    if (handled) {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onError(String msg) {
+                            // 错误处理
+                        }
+                    });
+
+                }, throwable -> {
+                    // interval 自身异常（一般不会进）
+                });
+    }
+
+    private void initLicenseValidityPeriod() {
+        String licenseValidityPeriod = "未授权";
+        String licenseValidityPeriodBase64 = SPUtils.getString(AppConstants.LICENSEVALIDITYPERIOD, "");
+        if (TextUtils.isEmpty(licenseValidityPeriodBase64)) {
+            licenseValidityPeriod = "未授权";
+        } else {
+            try {
+                // Base64 字符串解码成字节数组
+                byte[] decode = Base64.decode(licenseValidityPeriodBase64, Base64.DEFAULT);
+                // 如果本来是文本
+                licenseValidityPeriod = new String(decode, StandardCharsets.UTF_8);
+                licenseValidityPeriod = licenseValidityPeriod.split("_")[0];
+            } catch (Exception e) {
+                e.printStackTrace();
+                licenseValidityPeriod = "未授权";
+            }
+        }
+        tvValidityPeriod.setText(licenseValidityPeriod);
+    }
+
+    private void initMap() {
+        // 使用 RxJava 进行异步初始化
+        Observable.fromCallable(() -> {
+                    initEngine();      // 引擎初始化
+                    copyFiles();       // 拷贝 assets
+                    return true;       // 占位返回
+                }).subscribeOn(Schedulers.io())              // 上面 3 个操作放到 IO 线程
+                .observeOn(AndroidSchedulers.mainThread()) // 回主线程
+                .subscribe(result -> {
+                    initFragment();       // 创建 EarthFragment
+                }, throwable -> {
+                    throwable.printStackTrace();
+                    Toast.makeText(this, "初始化失败: " + throwable.getMessage(), Toast.LENGTH_LONG).show();
+                });
+    }
+
+    //初始化消息数据库
+    private void initDataBase() {
+        MessageDatabase db = MessageDatabase.getInstance(this);
+        String json = loadJsonFromAssets(this, "message.json");
+        // 解析 JSON
+        Gson gson = new Gson();
+        List<Message> list = gson.fromJson(json, new TypeToken<List<Message>>() {
+        }.getType());
+        // 转数组（Room 插入用）
+        Message[] array = list.toArray(new Message[0]);
+        // 真正执行插入（Completable 必须 subscribe 才会执行）
+        db.messageDao().insertMessages(array).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(() -> {
+            SPUtils.putBoolean(AppConstants.MESSAGEINIT, true);
+            Log.d("ROOM", "导入成功");
+        }, error -> Log.e("ROOM", "导入失败: " + error.getMessage()));
 
     }
 
@@ -210,11 +667,11 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
     private void uploadDeviceSos() {
         SosEventRequest sosEventRequest = new SosEventRequest();
         sosEventRequest.setDeviceSn(DeviceUtils.getDeviceId(this));
-        sosEventRequest.setLongitude("120.278616");
-        sosEventRequest.setLatitude("39.022933");
-        sosEventRequest.setEmergencyLevel("1");
-        sosEventRequest.setDescription("这是急救信息！");
-        sosEventRequest.setRemark("这是急救信息的备注！");
+//        sosEventRequest.setLongitude(String.valueOf(longitudeData));
+//        sosEventRequest.setLatitude(String.valueOf(latitudeData));
+//        sosEventRequest.setEmergencyLevel("1");
+//        sosEventRequest.setDescription("这是急救信息！");
+//        sosEventRequest.setRemark("这是急救信息的备注！");
         String json = new Gson().toJson(sosEventRequest);
         LogUtils.json(json);
         HttpUtils.postJson(UrlUtils.getSosEventStartUrl(), json, new HttpUtils.HttpCallback() {
@@ -239,50 +696,42 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
     }
 
     private void initView() {
+        tvValidityPeriod = findViewById(R.id.tv_validity_period);
         tvScrollingMessage = findViewById(R.id.tv_scrolling_message);
         tvScrollingMessage.setSelected(true);
     }
 
     private void initLocation() {
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        //TODO
-        longitudeData = 126.5292;
-        latitudeData = 33.3617;
-        // 创建 LocationRequest
-        locationRequest = new LocationRequest.Builder(
-                Priority.PRIORITY_HIGH_ACCURACY,
-                5000L   // 每 5 秒更新一次
-        ).build();
-
-        // 回调：持续接收定位结果
-        locationCallback = new LocationCallback() {
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        gpsListener = new android.location.LocationListener() {
             @Override
-            public void onLocationResult(@NonNull LocationResult result) {
-                for (android.location.Location location : result.getLocations()) {
-                    longitudeData = location.getLongitude();
-                    latitudeData = location.getLatitude();
-                    String text = "当前经度：" + longitudeData + "\n当前纬度：" + latitudeData;
-                    Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show();
-
-                    // 地图加载完，只跳转一次
-                    if (isEarthReady) {
-                        //TODO
-                        longitudeData = 126.5292;
-                        latitudeData = 33.3617;
-                        onAnimateTo(longitudeData, latitudeData, 0.0);
-                        isEarthReady = false;
-                    }
+            public void onLocationChanged(@NonNull android.location.Location location) {
+                if (locationManager != null && gpsListener != null) {
+                    locationManager.removeUpdates(gpsListener); // 拿到一次就停
                 }
+
+                longitudeData = location.getLongitude();
+                latitudeData = location.getLatitude();
+
+                Toast.makeText(MainActivity.this, "定位成功！\n经度：" + longitudeData + "\n纬度：" + latitudeData, Toast.LENGTH_SHORT).show();
+
+                // 地图加载后只执行一次
+                //TODO
+//                if (isEarthReady) {
+//                    //TODO
+//                    longitudeData = 126.5292;
+//                    latitudeData = 33.3617;
+//                    onAnimateTo(longitudeData, latitudeData, 0.0);
+//                    isEarthReady = false;
+//                }
             }
         };
     }
 
     private void initFragment() {
         mEarthFragment = EarthFragment.getInstance(this);
-        getSupportFragmentManager()
-                .beginTransaction()
-                .add(R.id.flt_container, mEarthFragment, TAG_EARTH_FRAGMENT)
-                .commitAllowingStateLoss();
+
+        getSupportFragmentManager().beginTransaction().add(R.id.flt_container, mEarthFragment, TAG_EARTH_FRAGMENT).commitAllowingStateLoss();
     }
 
     private void copyFiles() {
@@ -305,58 +754,76 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
         rvNotice.addItemDecoration(new RecyclerView.ItemDecoration() {
             @Override
             public void getItemOffsets(@NonNull Rect outRect, @NonNull View view, @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
-                outRect.set(15, 4, 15, 0);
+                outRect.set(15, 7, 15, 0);
             }
         });
-        ArrayList<NoticeBean> noticeList = new ArrayList<>();
-        noticeList.add(new NoticeBean(NoticeBean.NOTICE_BEIDOU, "[北斗通报信息]当前你的所处的经度为126.5292，维度为33.3617", "接收时间:2025年10月09日 10时"));
-        noticeList.add(new NoticeBean(NoticeBean.NOTICE_ALERT, "[预警信息]前方强台风即将来袭", "接收时间:2025年10月09日 9时"));
-        noticeList.add(new NoticeBean(NoticeBean.NOTICE_NOTICE_IMAGE, "[图片信息]你有一张新图片", "接收时间:2025年10月09日 8时"));
-        noticeList.add(new NoticeBean(NoticeBean.NOTICE_SMS, "[短信息]你有一条新消息", "接收时间:2025年10月09日 7时"));
-        noticeList.add(new NoticeBean(NoticeBean.NOTICE_TYPHOON, "[台风信息]前方有台风来袭", "接收时间:2025年10月09日 6时"));
-        noticeList.add(new NoticeBean(NoticeBean.NOTICE_WEATHER, "[气象消息]当前天气晴朗", "接收时间:2025年10月09日 5时"));
-        NoticeListAdapter adapter = new NoticeListAdapter(noticeList);
-        adapter.setOnItemClickListener(new NoticeListAdapter.OnItemClickListener() {
+//        ArrayList<NoticeBean> noticeList = new ArrayList<>();
+//        noticeList.add(new NoticeBean(NoticeBean.NOTICE_BEIDOU, "[北斗通报信息]当前你的所处的经度为126.5292，维度为33.3617", "接收时间:2025年10月09日 10时"));
+//        noticeList.add(new NoticeBean(NoticeBean.NOTICE_ALERT, "[预警信息]前方强台风即将来袭", "接收时间:2025年10月09日 9时"));
+//        noticeList.add(new NoticeBean(NoticeBean.NOTICE_NOTICE_IMAGE, "[图片信息]你有一张新图片", "接收时间:2025年10月09日 8时"));
+//        noticeList.add(new NoticeBean(NoticeBean.NOTICE_SMS, "[短信息]你有一条新消息", "接收时间:2025年10月09日 7时"));
+//        noticeList.add(new NoticeBean(NoticeBean.NOTICE_TYPHOON, "[台风信息]前方有台风来袭", "接收时间:2025年10月09日 6时"));
+//        noticeList.add(new NoticeBean(NoticeBean.NOTICE_WEATHER, "[气象消息]当前天气晴朗", "接收时间:2025年10月09日 5时"));
+        noticeListAdapter = new NoticeListAdapter(null);
+        noticeListAdapter.setOnItemClickListener(new NoticeListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
-                NoticeBean noticeBean = noticeList.get(position);
-                speak(noticeBean.getNoticeTitle());
-                switch (noticeBean.getNoticeType()) {
-                    case NoticeBean.NOTICE_BEIDOU: {
-                        MessageDialog dialog = MessageDialog.newInstance(MainActivity.this, noticeBean.getNoticeTitle());
+                Last24HoursBean.RowsBean rowsBean = noticeListAdapter.getDataList().get(position);
+                switch (rowsBean.getMessageType()) {
+                    case NoticeType.NOTICE_BEIDOU: {
+                        Gson gson = new Gson();
+                        BeidouBean beidouBean = gson.fromJson(rowsBean.getContent(), BeidouBean.class);
+                        String content = "北斗通道号为：" + beidouBean.getBeidouChannel() + "，卫星编号为：" + beidouBean.getSatelliteId() + "，信号强度：" + beidouBean.getSignalStrength();
+                        speak("您有一条北斗消息，" + content);
+                        MessageDialog dialog = MessageDialog.newInstance(MainActivity.this, rowsBean.getTitle(), content, rowsBean.getPublishTime());
                         dialog.show();
                     }
                     break;
-                    case NoticeBean.NOTICE_ALERT: {
-                        MessageDialog dialog = MessageDialog.newInstance(MainActivity.this, noticeBean.getNoticeTitle());
+                    case NoticeType.NOTICE_ALERT: {
+                        Gson gson = new Gson();
+                        WarnBean warnBean = gson.fromJson(rowsBean.getContent(), WarnBean.class);
+                        String content = warnBean.getWarningLevel();
+                        speak("您有一条预警信息，" + content);
+                        MessageDialog dialog = MessageDialog.newInstance(MainActivity.this, rowsBean.getTitle(), content, rowsBean.getPublishTime());
                         dialog.show();
                     }
                     break;
-                    case NoticeBean.NOTICE_NOTICE_IMAGE:
-                        startActivity(new Intent(MainActivity.this, ImageDetailActivity.class));
-                        break;
-                    case NoticeBean.NOTICE_SMS: {
-                        MessageDialog dialog = MessageDialog.newInstance(MainActivity.this, noticeBean.getNoticeTitle());
+                    case NoticeType.NOTICE_NOTICE_IMAGE: {
+                        Gson gson = new Gson();
+                        ImageBean imageBean = gson.fromJson(rowsBean.getContent(), ImageBean.class);
+                        ImageCache.base64 = imageBean.getBase64();
+                        speak("您有一条图片消息");
+                        Intent intent = new Intent(MainActivity.this, ImageDetailActivity.class);
+                        intent.putExtra("time", rowsBean.getPublishTime());
+                        startActivity(intent);
+                    }
+                    break;
+                    case NoticeType.NOTICE_SMS: {
+                        speak("您有一条短消息，" + rowsBean.getTitle());
+                        MessageDialog dialog = MessageDialog.newInstance(MainActivity.this, rowsBean.getTitle(), rowsBean.getContent(), rowsBean.getPublishTime());
                         dialog.show();
                     }
                     break;
-                    case NoticeBean.NOTICE_TYPHOON: {
-                        MessageDialog dialog = MessageDialog.newInstance(MainActivity.this, noticeBean.getNoticeTitle());
+                    case NoticeType.NOTICE_TYPHOON: {
+                        Gson gson = new Gson();
+                        TyphoonBean typhoonBean = gson.fromJson(rowsBean.getContent(), TyphoonBean.class);
+                        speak("您有一条台风" + typhoonBean.getTyphoonName() + "的消息");
+                        MessageDialog dialog = MessageDialog.newInstance(MainActivity.this, rowsBean.getTitle(), typhoonBean.getMovingDirection(), rowsBean.getTitle());
                         dialog.show();
                     }
                     break;
-                    case NoticeBean.NOTICE_WEATHER: {
-                        WeatherDialog dialog = WeatherDialog.newInstance(MainActivity.this, "[青岛沿海]\n黄岛区大风黄色预警，预警起始时间:2024-07-1621 50:35，请过往船只注意并加强防御");
+                    case NoticeType.NOTICE_WEATHER: {
+                        speak("您有一条天气消息");
+                        WeatherDialog dialog = WeatherDialog.newInstance(MainActivity.this, rowsBean.getTitle());
                         dialog.show();
                     }
                     break;
                 }
             }
         });
-        // 创建 TTS 实例
-        tts = new TextToSpeech(this, this);
-        rvNotice.setAdapter(adapter);
-//        Observable.interval(10, 20, TimeUnit.SECONDS)
+        rvNotice.setAdapter(noticeListAdapter);
+
+//        Observable.interval(10, 30, TimeUnit.SECONDS)
 //                // 参数说明：
 //                // 参数1 = 第1次延迟时间；
 //                // 参数2 = 间隔时间数字；
@@ -365,9 +832,8 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
 //                /*
 //                 * 步骤2：每次发送数字前发送1次网络请求（doOnNext（）在执行Next事件前调用）
 //                 *  即每隔1秒产生1个数字前，就发送1次网络请求，从而实现轮询需求
-//                 **/
-//                .subscribeOn(Schedulers.computation())              // 上游在 IO
-//                .observeOn(AndroidSchedulers.mainThread()) // 下游切到主线程
+//                 **/.subscribeOn(Schedulers.io())              // 上游在 IO
+//                .observeOn(Schedulers.io()) // 下游切到主线程
 //                .subscribe(new Observer<Long>() {
 //                    @Override
 //                    public void onSubscribe(@NonNull Disposable d) {
@@ -376,19 +842,46 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
 //
 //                    @Override
 //                    public void onNext(@NonNull Long aLong) {
-//                        if (turnOnNotice) {
-//                            try {
-//                                NoticeBean noticeBean = noticeList.get((int) (aLong % noticeList.size()));
-//                                if (dialog != null && dialog.isShowing()) {
-//                                    dialog.dismiss();
+//                        HttpUtils.get(UrlUtils.getMessageReceiveUrl(DeviceUtils.getDeviceId(MainActivity.this)), new HttpUtils.HttpCallback() {
+//                            @Override
+//                            public void onSuccess(String body) {
+//                                LogUtils.json(body);
+//                                Gson gson = new Gson();
+//                                MessageResponse response = gson.fromJson(body, MessageResponse.class);
+//                                if (response.getCode() == 200) {
+//                                    if (response.getData() != null && !response.getData().isEmpty()) {
+//                                        for (int i = 0; i < response.getData().size(); i++) {
+//                                            MessageResponse.MessageItem item = response.getData().get(i);
+//                                            List<MessageResponse.MessageItem> historyItem = MyApplication.getInstance().getData();
+//                                            if (!historyItem.contains(item)) {
+//                                                MyApplication.getInstance().addData(item);
+//                                                if (turnOnNotice) {
+//                                                    try {
+//                                                        if (dialog != null && dialog.isShowing()) {
+//                                                            dialog.dismiss();
+//                                                        }
+//                                                        dialog = MessageDialog.newInstance(MainActivity.this, item.getContent());
+//                                                        dialog.show();
+//                                                        speak(item.getContent());
+//                                                    } catch (Exception e) {
+//                                                        e.printStackTrace();
+//                                                    }
+//                                                }
+//                                            }
+//                                        }
+//                                    } else {
+//                                        Toast.makeText(MainActivity.this, "当前无最新消息！", Toast.LENGTH_SHORT).show();
+//                                    }
+//                                } else {
+//                                    onError(response.getMsg());
 //                                }
-//                                dialog = MessageDialog.newInstance(MainActivity.this, noticeBean.getNoticeTitle());
-//                                dialog.show();
-//                                speak(noticeBean.getNoticeTitle());
-//                            } catch (Exception e) {
-//                                e.printStackTrace();
 //                            }
-//                        }
+//
+//                            @Override
+//                            public void onError(String msg) {
+//                                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+//                            }
+//                        });
 //                    }
 //
 //                    @Override
@@ -402,103 +895,66 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
 //                    }
 //                });
 
-        Observable.interval(10, 30, TimeUnit.SECONDS)
-                // 参数说明：
-                // 参数1 = 第1次延迟时间；
-                // 参数2 = 间隔时间数字；
-                // 参数3 = 时间单位；
-                // 该例子发送的事件特点：延迟2s后发送事件，每隔1秒产生1个数字（从0开始递增1，无限个）
-                /*
-                 * 步骤2：每次发送数字前发送1次网络请求（doOnNext（）在执行Next事件前调用）
-                 *  即每隔1秒产生1个数字前，就发送1次网络请求，从而实现轮询需求
-                 **/
-                .subscribeOn(Schedulers.io())              // 上游在 IO
-                .observeOn(Schedulers.io()) // 下游切到主线程
-                .subscribe(new Observer<Long>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-                        disposable = d;
-                    }
+    }
 
-                    @Override
-                    public void onNext(@NonNull Long aLong) {
-                        HttpUtils.get(UrlUtils.getMessageReceiveUrl(DeviceUtils.getDeviceId(MainActivity.this)), new HttpUtils.HttpCallback() {
-                            @Override
-                            public void onSuccess(String body) {
-                                LogUtils.json(body);
-                                Gson gson = new Gson();
-                                MessageResponse response = gson.fromJson(body, MessageResponse.class);
-                                if (response.getCode() == 200) {
-                                    if (response.getData() != null && !response.getData().isEmpty()) {
-                                        for (int i = 0; i < response.getData().size(); i++) {
-                                            MessageResponse.MessageItem item = response.getData().get(i);
-                                            List<MessageResponse.MessageItem> historyItem = MyApplication.getInstance().getData();
-                                            if (!historyItem.contains(item)) {
-                                                MyApplication.getInstance().addData(item);
-                                                if (turnOnNotice) {
-                                                    try {
-                                                        if (dialog != null && dialog.isShowing()) {
-                                                            dialog.dismiss();
-                                                        }
-                                                        dialog = MessageDialog.newInstance(MainActivity.this, item.getContent());
-                                                        dialog.show();
-                                                        speak(item.getContent());
-                                                    } catch (Exception e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    } else {
-                                        Toast.makeText(MainActivity.this, "当前无最新消息！", Toast.LENGTH_SHORT).show();
-                                    }
-                                } else {
-                                    onError(response.getMsg());
-                                }
-                            }
-
-                            @Override
-                            public void onError(String msg) {
-                                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onError(@io.reactivex.rxjava3.annotations.NonNull Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
-
+    private int getWeather(String weatherPhenomenon) {
+        switch (weatherPhenomenon) {
+            case "晴":
+                return R.mipmap.ic_fine;
+            case "多云":
+                return R.mipmap.ic_cloudy;
+            case "阴天":
+                return R.mipmap.ic_cloudy_sky;
+            case "雷阵雨":
+                return R.mipmap.ic_thunder_shower;
+            case "雷阵雨伴冰雹":
+                return R.mipmap.ic_thunderstorms_with_hail;
+            case "雨夹雪":
+                return R.mipmap.ic_sleet;
+            case "小雨":
+                return R.mipmap.ic_sprinkle;
+            case "中雨":
+                return R.mipmap.ic_moderate_rain;
+            case "大雨":
+                return R.mipmap.ic_heavy_rain;
+            case "暴雨":
+                return R.mipmap.ic_torrential_rain;
+            case "大暴雨":
+                return R.mipmap.ic_downpour;
+            case "特大暴雨":
+                return R.mipmap.ic_heavy_downpour;
+            case "小雪":
+                return R.mipmap.ic_scouther;
+            case "中雪":
+                return R.mipmap.ic_moderate_snow;
+            case "大雪":
+                return R.mipmap.ic_heavy_snow;
+            case "暴雪":
+                return R.mipmap.ic_blizzard;
+            case "雾":
+                return R.mipmap.ic_fog;
+            case "冻雨":
+                return R.mipmap.ic_ice_rain;
+            case "沙尘暴":
+                return R.mipmap.ic_sand_storm;
+            case "扬沙或浮尘":
+                return R.mipmap.ic_sand_or_dust;
+            case "强沙尘暴":
+                return R.mipmap.ic_strong_sandstorm;
+            case "霾":
+                return R.mipmap.ic_haze;
+        }
+        return R.mipmap.ic_fine;
     }
 
     private void speak(String text) {
-        if (tts == null || !isTtsReady) {
-            Toast.makeText(MainActivity.this, "语音转换异常！", Toast.LENGTH_LONG).show();
+        if (!turnOnNotice) {
             return;
         }
-        tts.speak(text + "。",
-                TextToSpeech.QUEUE_FLUSH,
-                null,
-                "utteranceId_" + System.currentTimeMillis());
+        TTSManager.getInstance().speak(text);
     }
 
     private void initClicked() {
-        findViewById(R.id.offlineTv).setOnClickListener(v -> changeOfflineMapSource());        // 离线地图加载
-        findViewById(R.id.onlineTv).setOnClickListener(v -> changeOnlineMapSource(1));        // 在线地图加载
-        findViewById(R.id.locationTv).setOnClickListener(v -> updateLocation());              // 当前位置
-        findViewById(R.id.lineTv).setOnClickListener(v -> toAddLineInMap());                  // 画线
-        findViewById(R.id.drawLineTv).setOnClickListener(v -> onDrawLineElement());           // 手画线
-        findViewById(R.id.pointTv).setOnClickListener(v -> toAddPointInMap());                // 画点
-        findViewById(R.id.drawPointTv).setOnClickListener(v -> onDrawPointElement());         // 手画点
-        findViewById(R.id.drawPlaneTv).setOnClickListener(v -> onDrawPlaneElement());         // 手画面
-        findViewById(R.id.drawRevocationTv).setOnClickListener(v -> toRetreatDrawingElement());// 撤销当前线绘制
-        findViewById(R.id.typhoonTv).setOnClickListener(v -> startTyphoonSimulation());       // 模拟台风轨迹风圈绘制
         findViewById(R.id.tv_historical_data).setOnClickListener(v -> {
             startActivity(new Intent(MainActivity.this, HistoryMessageActivity.class));
         });
@@ -510,34 +966,55 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
             dialog.show();
         });
         findViewById(R.id.iv_sos).setOnClickListener(v -> {
-            SosDialog dialog = SosDialog.newInstance(MainActivity.this);
-            dialog.setPromptButtonClickedListener(new SosDialog.OnPromptButtonClickedListener() {
-                @Override
-                public void onPositiveButtonClicked() {
-                    uploadDeviceSos();
-                }
+            Intent intent = new Intent(MainActivity.this, SosActivity.class);
+            sosLauncher.launch(intent);
+        });
 
-                @Override
-                public void onNegativeButtonClicked() {
-
-                }
-            });
-            dialog.show();
+        findViewById(R.id.iv_layout).setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, LayoutActivity.class);
+            layoutLauncher.launch(intent);
+//            LayoutDialogFragment layoutDialogFragment = new LayoutDialogFragment();
+//            layoutDialogFragment.setOnConfirmListener(new LayoutDialogFragment.OnConfirmListener() {
+//                @Override
+//                public void onConfirm(List<String> selectedList) {
+//                    hideLayer(LayerType.FISHING_GROUND);
+//                    hideLayer(LayerType.COAST_LINE);
+//                    hideLayer(LayerType.LIGHTNING);
+//                    hideLayer(LayerType.TYPHOON);
+//                    hideLayer(LayerType.RAINSTORM);
+//                    if (selectedList.contains("渔场")) {
+//                        showLayer(LayerType.FISHING_GROUND);
+//                    }
+//                    if (selectedList.contains("沿岸")) {
+//                        showLayer(LayerType.COAST_LINE);
+//                    }
+//                    if (selectedList.contains("雷电")) {
+//                        showLayer(LayerType.LIGHTNING);
+//                    }
+//                    if (selectedList.contains("台风")) {
+//                        showLayer(LayerType.TYPHOON);
+//                    }
+//                    if (selectedList.contains("暴雨天气")) {
+//                        showLayer(LayerType.RAINSTORM);
+//                    }
+//                }
+//            });
+//            layoutDialogFragment.show(getSupportFragmentManager(), "layout");
         });
-        findViewById(R.id.iv_typhoon_cleanup).setOnClickListener(v -> {
-            removeAllTyphoonCircles();
+        findViewById(R.id.iv_location).setOnClickListener(v -> {
+            onAnimateTo(longitudeData, latitudeData, 0.0, 900000);
         });
-        findViewById(R.id.iv_bluetooth).setOnClickListener(v -> {
-            Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
-            startActivity(intent);
-        });
-        findViewById(R.id.iv_volume).setOnClickListener(v -> {
+        ImageView ivVolume = findViewById(R.id.iv_volume);
+        ivVolume.setSelected(true);
+        ivVolume.setOnClickListener(v -> {
             if (turnOnNotice) {
-                turnOnNotice = false;
-                Toast.makeText(this, "通知已关闭！", Toast.LENGTH_SHORT).show();
+                 turnOnNotice = false;
+                v.setSelected(false);
+                Toast.makeText(this, "语音通知已关闭！", Toast.LENGTH_SHORT).show();
             } else {
                 turnOnNotice = true;
-                Toast.makeText(this, "通知已开启！", Toast.LENGTH_SHORT).show();
+                v.setSelected(true);
+                Toast.makeText(this, "语音通知已开启！", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -551,13 +1028,8 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
 
     // 动态权限加载
     private void checkPermissionAndStartLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                    this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    100
-            );
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 100);
         } else {
             startLocationUpdates();
         }
@@ -565,33 +1037,69 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
 
     // 已授权，授权之后在加载地图
     private void startLocationUpdates() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        fusedLocationClient.requestLocationUpdates(
-                locationRequest,
-                locationCallback,
-                Looper.getMainLooper()
-        );
-        // 添加在线地图
-        addMapSource(TEST_MAP_SOURCE_URL3);
-        addMapSourceList();
-        // 添加离线地图
-        addOfflineMap();
+        if (locationManager == null) return;
+
+        boolean gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean netEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+        if (!gpsEnabled && !netEnabled) {
+            Toast.makeText(this, "请开启位置信息服务", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            // 1. 尝试网络定位（成功率最高）
+            if (netEnabled) {
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 0, gpsListener);
+            }
+
+            // 2. GPS 定位（备用）
+            if (gpsEnabled) {
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, gpsListener);
+            }
+            // 3. 尝试缓存位置作为 fallback
+            android.location.Location last = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            if (last == null) {
+                last = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            }
+            if (last != null) {
+                if (locationManager != null && gpsListener != null) {
+                    locationManager.removeUpdates(gpsListener); // 拿到一次就停
+                }
+
+                longitudeData = last.getLongitude();
+                latitudeData = last.getLatitude();
+
+                Toast.makeText(MainActivity.this, "定位成功！\n经度：" + longitudeData + "\n纬度：" + latitudeData, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // 4. 超时处理（3 秒没返回就失败）
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                try {
+                    locationManager.removeUpdates(gpsListener);
+                } catch (Exception ignored) {
+                }
+                if (longitudeData == 0 && latitudeData == 0) {
+                    Toast.makeText(this, "定位失败，请检查网络或GPS", Toast.LENGTH_SHORT).show();
+                }
+            }, 3000);
+        } catch (Exception e) {
+            Log.e("GPS", "GPS 启动失败: " + e.getMessage());
+            Toast.makeText(this, "定位失败！", Toast.LENGTH_SHORT).show();
+        }
+        // 保持你的地图初始化逻辑
+//        addMapSource(TEST_MAP_SOURCE_URL3);
+//        addMapSourceList();
+//        addOfflineMap();
     }
 
     // 权限回调
     @Override
-    public void onRequestPermissionsResult(
-            int requestCode,
-            @NonNull String[] permissions,
-            @NonNull int[] grantResults
-    ) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 100 &&
-                grantResults.length > 0 &&
-                grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (requestCode == 100 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             startLocationUpdates();
         } else {
             Toast.makeText(this, "未授予定位权限，无法获取位置", Toast.LENGTH_SHORT).show();
@@ -601,8 +1109,15 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        fusedLocationClient.removeLocationUpdates(locationCallback);
-        disposable.dispose();
+        if (locationManager != null && gpsListener != null) {
+            locationManager.removeUpdates(gpsListener);
+        }
+        if (disposable != null) {
+            disposable.dispose();
+        }
+        if (pollingDisposable != null) {
+            pollingDisposable.dispose();
+        }
     }
 
     public void addMapSource(String url) {
@@ -706,33 +1221,86 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
     // 绘制台风路径
     public void drawTyphoonTrack(List<GeoPoint> trackPoints) {
         long rootID = mEarthFragment.getRootLayerId();
-        VectorElement layer =
-                mEarthFragment.onCreateLayer(rootID, "台风轨迹", true);
+        VectorElement layer = mEarthFragment.onCreateLayer(rootID, "台风轨迹", true);
         VectorElement vector = new VectorElement(layer.id, VectorElement.TYPE_LINE, "台风路径");
         typhoonLayerIds.add(layer.id);
         vector.outlineWidth = "5";
         vector.outlineColor = "#FF00BFFF"; // 深天蓝
         vector.geoPoints.addAll(trackPoints);
-        mEarthFragment.drawElement(vector, true);
+        long elementId = mEarthFragment.drawElement(vector, true);
+
+        layerManager.addLayer(selectedLayerType, elementId);
     }
 
     // 绘制固定大小的风圈（不叠加、不渐变）
     public void addTyphoonCircle(double lon, double lat, String color, double radiusMeters) {
+        addTyphoonCircle(lon, lat, color, radiusMeters, "风圈");
+    }
+
+    public void addTyphoonCircle(double lon, double lat, String color, double radiusMeters, String detail) {
         long rootID = mEarthFragment.getRootLayerId();
-        VectorElement layer =
-                mEarthFragment.onCreateLayer(rootID, "台风风圈_" + System.currentTimeMillis(), true);
-        VectorElement vector = new VectorElement(layer.id, VectorElement.TYPE_CIRCLE, "风圈");
+        VectorElement layer = mEarthFragment.onCreateLayer(rootID, "台风风圈_" + System.currentTimeMillis(), true);
+        VectorElement vector = new VectorElement(layer.id, VectorElement.TYPE_CIRCLE, detail);
         typhoonLayerIds.add(layer.id);
         vector.outlineColor = color;
         vector.outlineWidth = "2";
         vector.showLabel = true;
-        vector.description = "风圈";
+        vector.description = detail;
 
         GeoPoint geo1 = new GeoPoint(lon, lat, 0.0);
         GeoPoint geo2 = new GeoPoint(radiusMeters, 0.0, 0.0);
         vector.geoPoints.add(geo1);
         vector.geoPoints.add(geo2);
-        mEarthFragment.drawElement(vector, true);
+        long elementId = mEarthFragment.drawElement(vector, true);
+
+        layerManager.addLayer(selectedLayerType, elementId);
+    }
+
+    public void drawRectangle(double swLng, double swLat,
+                              double neLng, double neLat,
+                              String color) {
+        drawRectangle(swLng, swLat, neLng, neLat, color, "");
+    }
+
+    public void drawRectangle(double swLng, double swLat,
+                              double neLng, double neLat,
+                              String color, String name) {
+
+        long rootID = mEarthFragment.getRootLayerId();
+
+        VectorElement layer = mEarthFragment.onCreateLayer(
+                rootID,
+                "矩形区域_" + System.currentTimeMillis(),
+                true
+        );
+
+        VectorElement vector = new VectorElement(
+                layer.id,
+                VectorElement.TYPE_RECT,
+                name
+        );
+
+        typhoonLayerIds.add(layer.id);
+
+        vector.outlineColor = color;
+        vector.outlineWidth = "2";
+        vector.showLabel = true;
+        vector.description = name;
+
+        // 左下
+        vector.geoPoints.add(new GeoPoint(swLng, swLat, 0.0));
+        // 右下
+        vector.geoPoints.add(new GeoPoint(neLng, swLat, 0.0));
+        // 右上
+        vector.geoPoints.add(new GeoPoint(neLng, neLat, 0.0));
+        // 左上
+        vector.geoPoints.add(new GeoPoint(swLng, neLat, 0.0));
+        // 闭合
+        vector.geoPoints.add(new GeoPoint(swLng, swLat, 0.0));
+
+        long elementId = mEarthFragment.drawElement(vector, true);
+
+        layerManager.addLayer(selectedLayerType, elementId);
     }
 
     // 模拟台风移动 + 动态更新等级与风圈
@@ -750,13 +1318,7 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
         double baseLon = 123.0;
         double baseLat = 18.0;
 
-        String[] levels = new String[]{
-                "热带风暴",
-                "强热带风暴",
-                "台风",
-                "强台风",
-                "超强台风"
-        };
+        String[] levels = new String[]{"热带风暴", "强热带风暴", "台风", "强台风", "超强台风"};
 
         for (int i = 0; i < levels.length; i++) {
             final int index = i;
@@ -815,23 +1377,42 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
         }
     }
 
-    private void toAddPointInMap(double lon, double lat, String ic) {
+    public byte[] getBytesFromRes(int resId, float angle) {
+        // 2. 加载 bitmap
+        Bitmap bmp = BitmapFactory.decodeResource(getResources(), resId);
+
+        // 3. 旋转 bitmap
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        Bitmap rotated = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
+
+        // 4. 转 byte[]
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        rotated.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        return baos.toByteArray();
+    }
+
+    private long toAddPointInMap(double lon, double lat, int ic) {
+        return toAddPointInMap(lon, lat, ic, 0);
+    }
+
+    private long toAddPointInMap(double lon, double lat, int ic, float angle) {
+        return toAddPointInMap(lon, lat, ic, 0.6f, angle);
+    }
+
+    private long toAddPointInMap(double lon, double lat, int ic, float iconScale, float angle) {
         long rootID = mEarthFragment.getRootLayerId();
-        VectorElement layer =
-                mEarthFragment.onCreateLayer(rootID, "", true);
+        VectorElement layer = mEarthFragment.onCreateLayer(rootID, "", true);
 
         VectorElement vector = new VectorElement(layer.id, VectorElement.TYPE_POINT, "点");
         vector.description = "描述";
 
-        vector.isCustomPath = true;
-        vector.iconPath = ic;
-//        if (vector.isCustomPath) {
-//            vector.iconPath = "自定义.png";
-//        } else {
-//            vector.iconPath = ic;
-//        }
+//        vector.isCustomPath = true;
+        vector.image = getBytesFromRes(ic, angle);         // 使用旋转后的位图
+        vector.showIcon = true;
+        vector.isCustomPath = false;
 
-        vector.iconScale = 0.6f;
+        vector.iconScale = iconScale;
         vector.iconAlign = Constants.ICON_ALIGNMENT_CENTER_CENTER;
 
         vector.showLabel = false;
@@ -841,13 +1422,13 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
         vector.geoPoints.add(geo);
 
         long id = mEarthFragment.drawElement(vector, true);
-        BMEngine.setElementDescription(id, "测试");
+        layerManager.addLayer(selectedLayerType, id);
+        return id;
     }
 
     private void toAddPointInMap(double lon, double lat) {
         long rootID = mEarthFragment.getRootLayerId();
-        VectorElement layer =
-                mEarthFragment.onCreateLayer(rootID, "", true);
+        VectorElement layer = mEarthFragment.onCreateLayer(rootID, "", true);
 
         VectorElement vector = new VectorElement(layer.id, VectorElement.TYPE_POINT, "点");
         vector.description = "描述";
@@ -874,8 +1455,7 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
 
     private void toAddLineInMap(GeoPoint geoPoint1, GeoPoint geoPoint2) {
         long rootID = mEarthFragment.getRootLayerId();
-        VectorElement layer =
-                mEarthFragment.onCreateLayer(rootID, "", true);
+        VectorElement layer = mEarthFragment.onCreateLayer(rootID, "", true);
 
         VectorElement vector = new VectorElement(layer.id, VectorElement.TYPE_LINE, "线");
         vector.description = "描述";
@@ -914,8 +1494,7 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
 
     private void toAddCircleInMap(double lon, double lat) {
         long rootID = mEarthFragment.getRootLayerId();
-        VectorElement layer =
-                mEarthFragment.onCreateLayer(rootID, "", true);
+        VectorElement layer = mEarthFragment.onCreateLayer(rootID, "", true);
 
         VectorElement vector = new VectorElement(layer.id, VectorElement.TYPE_CIRCLE, "圆");
         vector.description = "描述";
@@ -932,8 +1511,7 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
 
     private void toAddEllipseInMap(double lon, double lat) {
         long rootID = mEarthFragment.getRootLayerId();
-        VectorElement layer =
-                mEarthFragment.onCreateLayer(rootID, "", true);
+        VectorElement layer = mEarthFragment.onCreateLayer(rootID, "", true);
 
         VectorElement vector = new VectorElement(layer.id, VectorElement.TYPE_ELLIPSE, "椭圆");
         vector.description = "描述";
@@ -958,8 +1536,7 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
         BMEngine.setDefaultStyle(style);
 
         long rootID = mEarthFragment.getRootLayerId();
-        VectorElement layer =
-                mEarthFragment.onCreateLayer(rootID, "", true);
+        VectorElement layer = mEarthFragment.onCreateLayer(rootID, "", true);
 
         mEarthFragment.toStartDrawElement(type, layer.id);
         // 绘制完成后会回调 onCallbackDrawElementStepEditing()
@@ -981,8 +1558,12 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
 
     // time 跳转时间
     private void onAnimateTo(double lon, double lat, double time) {
+        onAnimateTo(lon, lat, time, 5000000);
+    }
+
+    // time 跳转时间
+    private void onAnimateTo(double lon, double lat, double time, int height) {
         GeoPoint geoPoint = new GeoPoint(lon, lat);
-        int height = 5000000;
         double pitch = -90.0;
         mEarthFragment.animateTo(geoPoint, height, time, pitch);
     }
@@ -990,6 +1571,11 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
     // 在线地图
     @Override
     public void onCreateEarthComplete() {
+//todo
+        addMapSource(TEST_MAP_SOURCE_URL3);
+        addMapSourceList();
+        addOfflineMap();
+
         Log.e("Fangs", "=====");
         isEarthReady = true;
 
@@ -1018,11 +1604,40 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
         BMEngine.isShowBuilding(false);
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(() -> {
-            startTyphoonSimulation();
-            initWind();
-            initFishingGround();
-        }, 5000L);
+//            startTyphoonSimulation();
+//            initWind();
+//            initWeather();
+//            initFishingGround();
+            selectedLayerType = LayerType.CJFA;
+            drawKmlFishingZone("zhongri.kml");
+            selectedLayerType = LayerType.CKFA;
+            drawKmlFishingZone("zhonghan.kml");
+            selectedLayerType = LayerType.COAST_LINE;
+            drawKmlFishingZone("jilun.kml");
+            drawKmlFishingZone("linghai.kml");
 
+        }, 5000L);
+        //TODO
+//        longitudeData = 126.5292;
+//        latitudeData = 33.3617;
+        onAnimateTo(126.5292, 33.3617, 0.0);
+        selectedLayerType = LayerType.LOCATION;
+        toAddPointInMap(longitudeData, latitudeData, R.mipmap.ic_fishing_vessel, 1f, 0);
+
+    }
+
+    public void hideLayer(LayerType type) {
+        List<Long> list = layerManager.getLayers(type);
+        for (Long id : list) {
+            mEarthFragment.setElementVisible(id, false);
+        }
+    }
+
+    public void showLayer(LayerType type) {
+        List<Long> list = layerManager.getLayers(type);
+        for (Long id : list) {
+            mEarthFragment.setElementVisible(id, true);
+        }
     }
 
     private void initFishingGround() {
@@ -1043,8 +1658,7 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
                 String type = geometry.getString("type");
 
                 // 创建图层
-                VectorElement layer =
-                        mEarthFragment.onCreateLayer(rootLayerId, "渔区_" + i, true);
+                VectorElement layer = mEarthFragment.onCreateLayer(rootLayerId, "渔区_" + i, true);
 
                 if (type.equals("Polygon")) {
                     JSONArray coords = geometry.getJSONArray("coordinates");
@@ -1059,6 +1673,7 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
                         drawOnePolygon(poly, layer.id);
                     }
                 }
+                layerManager.addLayer(selectedLayerType, layer.id);
             }
 
             // 移动视角至渔区中心（山东外海）
@@ -1085,12 +1700,10 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
         JSONArray outerRing = polygonArray.getJSONArray(0);
 
         // 创建面
-        VectorElement polygon =
-                new VectorElement(layerId, VectorElement.TYPE_PLANE, "渔区");
+        VectorElement polygon = new VectorElement(layerId, VectorElement.TYPE_PLANE, "渔区");
 
         // 设置非常明显的样式
-        polygon.attribute =
-                "strokeColor:#FF0000; strokeWidth:20; fillColor:#55FF0000";
+        polygon.attribute = "strokeColor:#FF0000; strokeWidth:20; fillColor:#55FF0000";
 
         // 添加点（GeoJSON 是 [lon, lat]）
         for (int k = 0; k < outerRing.length(); k++) {
@@ -1104,10 +1717,7 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
 
         // ⭐ 必须：闭合 polygon，否则 Bigemap 会崩溃
         if (!isClosed(polygon.geoPoints)) {
-            polygon.geoPoints.add(new GeoPoint(
-                    polygon.geoPoints.get(0).lon,
-                    polygon.geoPoints.get(0).lat
-            ));
+            polygon.geoPoints.add(new GeoPoint(polygon.geoPoints.get(0).lon, polygon.geoPoints.get(0).lat));
         }
 
         // 绘制
@@ -1120,20 +1730,19 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
         GeoPoint a = pts.get(0);
         GeoPoint b = pts.get(pts.size() - 1);
 
-        return Math.abs(a.lon - b.lon) < 1e-6 &&
-                Math.abs(a.lat - b.lat) < 1e-6;
+        return Math.abs(a.lon - b.lon) < 1e-6 && Math.abs(a.lat - b.lat) < 1e-6;
     }
 
     private void initWind() {
         ArrayList<LocationBean> locationList = new ArrayList<>();
-        locationList.add(new LocationBean(39.022933, 120.278616, "ic_wind.png"));
-        locationList.add(new LocationBean(38.388520, 120.056895, "ic_wind_1.png"));
-        locationList.add(new LocationBean(38.214523, 123.641380, "ic_wind_1.png"));
-        locationList.add(new LocationBean(34.465327, 125.230379, "ic_wind_2.png"));
-        locationList.add(new LocationBean(32.772956, 125.526006, "ic_wind_3.png"));
-        locationList.add(new LocationBean(30.825909, 124.971705, "ic_wind_3.png"));
-        locationList.add(new LocationBean(30.029324, 126.819377, "ic_wind.png"));
-        locationList.add(new LocationBean(28.286816, 124.786937, "ic_wind_2.png"));
+        locationList.add(new LocationBean(39.022933, 120.278616, R.mipmap.ic_wind_3));
+        locationList.add(new LocationBean(38.388520, 120.056895, R.mipmap.ic_wind_4));
+        locationList.add(new LocationBean(38.214523, 123.641380, R.mipmap.ic_wind_5));
+        locationList.add(new LocationBean(34.465327, 125.230379, R.mipmap.ic_wind_6));
+        locationList.add(new LocationBean(32.772956, 125.526006, R.mipmap.ic_wind_7));
+        locationList.add(new LocationBean(30.825909, 124.971705, R.mipmap.ic_wind_8));
+        locationList.add(new LocationBean(30.029324, 126.819377, R.mipmap.ic_wind_10));
+        locationList.add(new LocationBean(28.286816, 124.786937, R.mipmap.ic_wind_12));
 
         Handler handler = new Handler(Looper.getMainLooper());
         for (int i = 0; i < locationList.size(); i++) {
@@ -1142,9 +1751,30 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
             handler.postDelayed(() -> {
                 double lon = locationList.get(finalI).getLongitude();
                 double lat = locationList.get(finalI).getLatitude();
-                String ic = locationList.get(finalI).getIc();
-                toAddPointInMap(lon, lat, ic);
+                int ic = locationList.get(finalI).getIc();
+                // 1. 随机角度（0~360）
+                float angle = (float) (Math.random() * 360f);
+                layerManager.addLayer(selectedLayerType, toAddPointInMap(lon, lat, ic, angle));
             }, index * 3000L);
+        }
+    }
+
+    private void initWeather() {
+        ArrayList<LocationBean> locationList = new ArrayList<>();
+        locationList.add(new LocationBean(37.372753, 119.373551, R.mipmap.ic_cloudy));
+        locationList.add(new LocationBean(37.869470, 121.568474, R.mipmap.ic_cloudy_sky));
+        locationList.add(new LocationBean(36.353621, 121.571741, R.mipmap.ic_downpour));
+        locationList.add(new LocationBean(38.903766, 120.627793, R.mipmap.ic_fine));
+        locationList.add(new LocationBean(40.284387, 121.089539, R.mipmap.ic_heavy_rain));
+        locationList.add(new LocationBean(37.217907, 123.836121, R.mipmap.ic_heavy_downpour));
+        locationList.add(new LocationBean(35.608900, 120.562195, R.mipmap.ic_sand_storm));
+        locationList.add(new LocationBean(35.143091, 119.946961, R.mipmap.ic_strong_sandstorm));
+
+        for (int i = 0; i < locationList.size(); i++) {
+            double lon = locationList.get(i).getLongitude();
+            double lat = locationList.get(i).getLatitude();
+            int ic = locationList.get(i).getIc();
+            layerManager.addLayer(selectedLayerType, toAddPointInMap(lon, lat, ic));
         }
     }
 
@@ -1270,11 +1900,7 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
 
     public void updateLocation() {
         GeoPoint geoPoint = new GeoPoint(longitudeData, latitudeData);
-        Toast.makeText(
-                this,
-                "当前经度：" + longitudeData + "\n当前纬度：" + latitudeData,
-                Toast.LENGTH_SHORT
-        ).show();
+        Toast.makeText(this, "当前经度：" + longitudeData + "\n当前纬度：" + latitudeData, Toast.LENGTH_SHORT).show();
         mEarthFragment.updateLocation(geoPoint, 100.0, 0.0); // 1、位置 2、精度 3、方向
     }
 
@@ -1337,67 +1963,461 @@ public class MainActivity extends BaseActivity implements OperationCallback, Tex
         }
     }
 
-    @Override
-    public void onInit(int status) {
-        if (status != TextToSpeech.SUCCESS) {
-            Toast.makeText(this, "语音引擎初始化失败", Toast.LENGTH_SHORT).show();
-            return;
+//    public void drawKmlFishingZone2(String assetFileName) {
+//        try {
+//            String kml = loadJsonFromAssets(this, assetFileName);
+//
+//            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+//            factory.setNamespaceAware(false);
+//            DocumentBuilder builder = factory.newDocumentBuilder();
+//            InputSource is = new InputSource(new java.io.StringReader(kml));
+//            org.w3c.dom.Document doc = builder.parse(is);
+//
+//            NodeList placemarks = doc.getElementsByTagName("Placemark");
+//
+//            for (int i = 0; i < placemarks.getLength(); i++) {
+//                Element placemark = (Element) placemarks.item(i);
+//
+//                String name = getTagValue(placemark, "name");
+//                String styleUrl = getTagValue(placemark, "styleUrl");
+//
+//                // 1) LineString（折线）
+//                NodeList lineList = placemark.getElementsByTagName("LineString");
+//                if (lineList.getLength() > 0) {
+//                    Element line = (Element) lineList.item(0);
+//                    String coordinates = getCoordinates(line);
+//                    List<GeoPoint> points = parseCoordinates(coordinates);
+//
+//                    drawKmlLine(name, points, styleUrl);
+//                    continue;
+//                }
+//
+//                // 2) Polygon（面）
+//                NodeList polyList = placemark.getElementsByTagName("Polygon");
+//                if (polyList.getLength() > 0) {
+//                    Element polygon = (Element) polyList.item(0);
+//
+//                    NodeList lrList = polygon.getElementsByTagName("LinearRing");
+//                    if (lrList.getLength() == 0) continue;
+//
+//                    Element lr = (Element) lrList.item(0);
+//                    String coordinates = getCoordinates(lr);
+//                    List<GeoPoint> points = parseCoordinates(coordinates);
+//                    drawKmlPolygon(name, points, styleUrl);
+//                }
+//            }
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            Toast.makeText(this, "KML解析失败: " + assetFileName, Toast.LENGTH_LONG).show();
+//        }
+//    }
+
+    private String convertKmlColor(String kmlColor) {
+        if (kmlColor == null) return null;   // ★ 关键
+
+        String s = kmlColor.trim();
+        if (s.isEmpty()) return null;
+
+        s = s.replace("#", "");
+        if (s.startsWith("0x") || s.startsWith("0X")) {
+            s = s.substring(2);
         }
 
-        // ① 尝试多种中文 Locale，兼容不同厂商实现
-        Locale[] candidates = new Locale[]{
-                Locale.SIMPLIFIED_CHINESE,   // 推荐
-                Locale.CHINA,                // zh_CN
-                Locale.CHINESE,              // zh
-                new Locale("zh", "CN")       // 再手写一遍
-        };
+        if (s.length() != 8) return null;
+        if (!s.matches("[0-9a-fA-F]{8}")) return null;
 
-        int result = TextToSpeech.LANG_NOT_SUPPORTED;
+        // KML: AABBGGRR -> Android: AARRGGBB
+        String aa = s.substring(0, 2);
+        String bb = s.substring(2, 4);
+        String gg = s.substring(4, 6);
+        String rr = s.substring(6, 8);
 
-        for (Locale loc : candidates) {
-            result = tts.setLanguage(loc);
-            Log.d("tts", "try locale: " + loc + " result = " + result);
-            if (result == TextToSpeech.LANG_AVAILABLE
-                    || result == TextToSpeech.LANG_COUNTRY_AVAILABLE
-                    || result == TextToSpeech.LANG_COUNTRY_VAR_AVAILABLE) {
-                break; // 找到一个认为“支持”的就结束循环
+        return "#" + aa + rr + gg + bb;
+    }
+
+//    public void drawKmlFishingZone(String assetFileName) {
+//        try {
+//            String kml = loadJsonFromAssets(this, assetFileName);
+//
+//            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+//            factory.setNamespaceAware(false);
+//            DocumentBuilder builder = factory.newDocumentBuilder();
+//            InputSource is = new InputSource(new java.io.StringReader(kml));
+//            org.w3c.dom.Document doc = builder.parse(is);
+//
+//            /* ===============================
+//             * 1. 解析所有 Style
+//             * =============================== */
+//            Map<String, KmlStyle> styleMap = new HashMap<>();
+//
+//            NodeList styleList = doc.getElementsByTagName("Style");
+//            for (int i = 0; i < styleList.getLength(); i++) {
+//                Element style = (Element) styleList.item(i);
+//                String styleId = style.getAttribute("id");
+//                if (styleId == null || styleId.isEmpty()) continue;
+//
+//                KmlStyle ks = new KmlStyle();
+//
+//                // LineStyle
+//                NodeList lineStyles = style.getElementsByTagName("LineStyle");
+//                if (lineStyles.getLength() > 0) {
+//                    Element lineStyle = (Element) lineStyles.item(0);
+//
+//                    String kmlColor = getTagValue(lineStyle, "color");
+//                    if (kmlColor != null) {
+//                        ks.setLineColor(convertKmlColor(kmlColor));
+//                    }
+//
+//                    String width = getTagValue(lineStyle, "width");
+//                    if (width != null) {
+//                        try {
+//                            ks.setLineWidth(Float.parseFloat(width));
+//                        } catch (Exception ignored) {
+//                        }
+//                    }
+//                }
+//
+//                // PolyStyle
+//                NodeList polyStyles = style.getElementsByTagName("PolyStyle");
+//                if (polyStyles.getLength() > 0) {
+//                    Element polyStyle = (Element) polyStyles.item(0);
+//                    String kmlColor = getTagValue(polyStyle, "color");
+//                    if (kmlColor != null) {
+//                        ks.setFillColor(convertKmlColor(kmlColor));
+//                    }
+//                }
+//
+//                styleMap.put("#" + styleId, ks);
+//            }
+//
+//            /* ===============================
+//             * 2. 解析 Placemark
+//             * =============================== */
+//            NodeList placemarks = doc.getElementsByTagName("Placemark");
+//
+//            for (int i = 0; i < placemarks.getLength(); i++) {
+//                Element placemark = (Element) placemarks.item(i);
+//
+//                String name = getTagValue(placemark, "name");
+//                String styleUrl = getTagValue(placemark, "styleUrl");
+//                KmlStyle style = styleMap.get(styleUrl);
+//
+//                // 1) LineString
+//                NodeList lineList = placemark.getElementsByTagName("LineString");
+//                if (lineList.getLength() > 0) {
+//                    Element line = (Element) lineList.item(0);
+//                    String coordinates = getCoordinates(line);
+//                    List<GeoPoint> points = parseCoordinates(coordinates);
+//
+//                    if (points != null && points.size() >= 2) {
+//                        drawKmlLine(
+//                                name,
+//                                points,
+//                                style != null ? style.getLineColor() : null,
+//                                style != null ? style.getLineWidth() : 0
+//                        );
+//                    }
+//                    continue;
+//                }
+//
+//                // 2) Polygon
+//                NodeList polyList = placemark.getElementsByTagName("Polygon");
+//                if (polyList.getLength() > 0) {
+//                    Element polygon = (Element) polyList.item(0);
+//
+//                    NodeList lrList = polygon.getElementsByTagName("LinearRing");
+//                    if (lrList.getLength() == 0) continue;
+//
+//                    Element lr = (Element) lrList.item(0);
+//                    String coordinates = getCoordinates(lr);
+//                    List<GeoPoint> points = parseCoordinates(coordinates);
+//
+//                    if (points != null && points.size() >= 3) {
+//                        drawKmlPolygon(
+//                                name,
+//                                points,
+//                                style != null ? style.getFillColor() : null,
+//                                style != null ? style.getLineColor() : null,
+//                                style != null ? style.getLineWidth() : 0
+//                        );
+//                    }
+//                }
+//            }
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            Toast.makeText(this, "KML解析失败: " + assetFileName, Toast.LENGTH_LONG).show();
+//        }
+//    }
+
+    private String getTagValue(Element parent, String tag) {
+        NodeList list = parent.getElementsByTagName(tag);
+        if (list.getLength() == 0) return "";
+        return list.item(0).getTextContent().trim();
+    }
+
+    private KmlStyle parseStyleElement(Element styleElement) {
+        if (styleElement == null) return null;
+
+        KmlStyle ks = new KmlStyle();
+
+        // LineStyle
+        NodeList lineStyles = styleElement.getElementsByTagName("LineStyle");
+        if (lineStyles.getLength() > 0) {
+            Element lineStyle = (Element) lineStyles.item(0);
+
+            String color = getTagValue(lineStyle, "color");
+            ks.setLineColor(convertKmlColor(color));
+
+            String width = getTagValue(lineStyle, "width");
+            if (width != null) {
+                try {
+                    ks.setLineWidth(Float.parseFloat(width));
+                } catch (Exception ignored) {
+                }
             }
         }
 
-        // ② 对于大陆很多机型，这里的返回值经常不靠谱
-        if (result == TextToSpeech.LANG_MISSING_DATA
-                || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-            // ❗不要直接跟用户说“不支持中文”
-            // 很多手机会返回这两个值但实际能读中文
-            Log.w("tts", "setLanguage 返回不支持中文，先尝试直接播报测试语音");
-            // 如果你实在想提示，可以改成引导用户检查系统设置，不要一口咬死“不支持”
-            // Toast.makeText(this, "当前设备语音引擎可能未启用中文，请在系统设置中检查文本转语音功能", Toast.LENGTH_LONG).show();
+        // PolyStyle
+        NodeList polyStyles = styleElement.getElementsByTagName("PolyStyle");
+        if (polyStyles.getLength() > 0) {
+            Element polyStyle = (Element) polyStyles.item(0);
+            String color = getTagValue(polyStyle, "color");
+            ks.setFillColor(convertKmlColor(color));
         }
 
-        // ③ 用耳朵做最终判断：直接播一段测试语音
-        tts.speak("语音播报功能已经准备就绪",
-                TextToSpeech.QUEUE_FLUSH,
-                null,
-                "init_test");
-
-        isTtsReady = true;
+        return ks;
     }
 
-    public static String loadJsonFromAssets(Context context, String fileName) {
-        StringBuilder builder = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(context.getAssets().open(fileName), "UTF-8"))) {
+    public void drawKmlFishingZone(String assetFileName) {
+        try {
+            String kml = loadJsonFromAssets(this, assetFileName);
 
-            String line;
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(false);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            InputSource is = new InputSource(new java.io.StringReader(kml));
+            org.w3c.dom.Document doc = builder.parse(is);
+
+            /* ===============================
+             * 1. 解析 Document 级 Style（可选）
+             * =============================== */
+            Map<String, KmlStyle> styleMap = new HashMap<>();
+
+            NodeList styleList = doc.getElementsByTagName("Style");
+            for (int i = 0; i < styleList.getLength(); i++) {
+                Element style = (Element) styleList.item(i);
+                String styleId = style.getAttribute("id");
+                if (styleId == null || styleId.isEmpty()) continue;
+
+                KmlStyle ks = parseStyleElement(style);
+                styleMap.put("#" + styleId, ks);
+            }
+
+            /* ===============================
+             * 2. 解析 Placemark
+             * =============================== */
+            NodeList placemarks = doc.getElementsByTagName("Placemark");
+
+            for (int i = 0; i < placemarks.getLength(); i++) {
+                Element placemark = (Element) placemarks.item(i);
+
+                String name = getTagValue(placemark, "name");
+
+                /* ===== 样式解析（关键） ===== */
+                KmlStyle style = null;
+
+                // ① 优先读取 Placemark 内联 Style（你这个 KML 就是这种）
+                NodeList inlineStyles = placemark.getElementsByTagName("Style");
+                if (inlineStyles.getLength() > 0) {
+                    style = parseStyleElement((Element) inlineStyles.item(0));
+                }
+
+                // ② 如果没有内联 Style，再走 styleUrl
+                if (style == null) {
+                    String styleUrl = getTagValue(placemark, "styleUrl");
+                    if (styleUrl != null) {
+                        style = styleMap.get(styleUrl);
+                    }
+                }
+
+                /* ===== LineString ===== */
+                NodeList lineList = placemark.getElementsByTagName("LineString");
+                if (lineList.getLength() > 0) {
+                    Element line = (Element) lineList.item(0);
+                    String coordinates = getCoordinates(line);
+                    List<GeoPoint> points = parseCoordinates(coordinates);
+
+                    if (points != null && points.size() >= 2) {
+                        drawKmlLine(name, points, style != null ? style.getLineColor() : null, style != null ? style.getLineWidth() : 0);
+                    }
+                    continue;
+                }
+
+                /* ===== Polygon ===== */
+                NodeList polyList = placemark.getElementsByTagName("Polygon");
+                if (polyList.getLength() > 0) {
+                    Element polygon = (Element) polyList.item(0);
+
+                    NodeList lrList = polygon.getElementsByTagName("LinearRing");
+                    if (lrList.getLength() == 0) continue;
+
+                    Element lr = (Element) lrList.item(0);
+                    String coordinates = getCoordinates(lr);
+                    List<GeoPoint> points = parseCoordinates(coordinates);
+
+                    if (points != null && points.size() >= 3) {
+                        drawKmlPolygon(name, points, style != null ? style.getFillColor() : null, style != null ? style.getLineColor() : null, style != null ? style.getLineWidth() : 0);
+                    }
+                }
             }
 
         } catch (Exception e) {
             e.printStackTrace();
+            Toast.makeText(this, "KML解析失败: " + assetFileName, Toast.LENGTH_LONG).show();
         }
-
-        return builder.toString();
     }
 
+    private String getCoordinates(Element parent) {
+        return parent.getElementsByTagName("coordinates").item(0).getTextContent().trim();
+    }
+
+    private void drawKmlLine(String name, List<GeoPoint> pts, String color, float lineWidth) {
+        long root = mEarthFragment.getRootLayerId();
+        VectorElement layer = mEarthFragment.onCreateLayer(root, name, true);
+
+        VectorElement line = new VectorElement(layer.id, VectorElement.TYPE_LINE, name);
+
+        // 统一红色样式
+        line.attribute = "strokeColor:#FF0000;" + "strokeWidth:6;";
+        line.outlineColor = color;
+        line.outlineWidth = String.valueOf(lineWidth);
+        line.geoPoints.addAll(pts);
+
+        long elementId = mEarthFragment.drawElement(line, true);
+
+        // ⭐ 在中间标注文字
+        GeoPoint center = computeLineCenter(pts);
+        drawTextLabel(name, center);
+        layerManager.addLayer(selectedLayerType, elementId);
+    }
+
+    private List<GeoPoint> parseCoordinates(String coordsText) {
+        List<GeoPoint> list = new ArrayList<>();
+        String[] rows = coordsText.split("\\s+");
+
+        for (String row : rows) {
+            String[] parts = row.split(",");
+            if (parts.length < 2) continue;
+
+            double lon = Double.parseDouble(parts[0]);
+            double lat = Double.parseDouble(parts[1]);
+
+            list.add(new GeoPoint(lon, lat));
+        }
+        return list;
+    }
+
+    private List<GeoPoint> parseKmlCoordinates(String coordinatesText) {
+        List<GeoPoint> list = new ArrayList<>();
+
+        String[] lines = coordinatesText.split("\\s+");
+
+        for (String line : lines) {
+            String[] parts = line.split(",");
+            if (parts.length < 2) continue;
+
+            double lon = Double.parseDouble(parts[0]);
+            double lat = Double.parseDouble(parts[1]);
+
+            list.add(new GeoPoint(lon, lat));
+        }
+
+        return list;
+    }
+
+    private void drawKmlLineToMap(List<GeoPoint> points) {
+
+        long rootID = mEarthFragment.getRootLayerId();
+        VectorElement layer = mEarthFragment.onCreateLayer(rootID, "禁渔区线_" + System.currentTimeMillis(), true);
+
+        VectorElement vector = new VectorElement(layer.id, VectorElement.TYPE_LINE, "禁渔线");
+
+        vector.outlineWidth = "5";            // 线宽
+        vector.outlineColor = "#FFFF0000";    // 红色
+        vector.showLabel = false;
+
+        vector.geoPoints.addAll(points);
+
+        mEarthFragment.drawElement(vector, true);
+    }
+
+    private void drawKmlPolygon(String name, List<GeoPoint> pts, String fillColor, String lineColor, float lineWith) {
+
+        long root = mEarthFragment.getRootLayerId();
+        VectorElement layer = mEarthFragment.onCreateLayer(root, name, true);
+
+        VectorElement poly = new VectorElement(layer.id, VectorElement.TYPE_PLANE, name);
+
+        String fill = "#6600A0FF"; // 默认半透明蓝色
+        String stroke = "#FF0000"; // 红边
+
+//        if (styleUrl.contains("provisionalAreaStyle")) {
+//            fill = "#5540A0FF";  // 中韩：深蓝
+//        } else if (styleUrl.contains("waterAreaStyle")) {
+//            fill = "#5566CCFF";  // 中日：浅蓝
+//        }
+
+        poly.attribute = "strokeColor:" + stroke + ";" + "strokeWidth:6;" + "fillColor:" + fill + ";";
+
+        poly.geoPoints.addAll(pts);
+
+        // 确保闭合
+        if (!pts.get(0).equals(pts.get(pts.size() - 1))) {
+            poly.geoPoints.add(pts.get(0));
+        }
+
+        long elementId = mEarthFragment.drawElement(poly, true);
+
+        // ⭐新增：在区域中间绘制文字标签
+        GeoPoint center = computePolygonCentroid(pts);
+        drawTextLabel(name, center);
+        layerManager.addLayer(selectedLayerType, elementId);
+    }
+
+    private GeoPoint computePolygonCentroid(List<GeoPoint> pts) {
+        double lonSum = 0, latSum = 0;
+        for (GeoPoint p : pts) {
+            lonSum += p.lon;
+            latSum += p.lat;
+        }
+        return new GeoPoint(lonSum / pts.size(), latSum / pts.size());
+    }
+
+    private void drawTextLabel(String text, GeoPoint center) {
+        long rootID = mEarthFragment.getRootLayerId();
+        VectorElement layer = mEarthFragment.onCreateLayer(rootID, "LABEL_" + text, true);
+
+        VectorElement label = new VectorElement(layer.id, VectorElement.TYPE_POINT, text);
+
+        label.showLabel = true;
+        label.description = text;
+        label.labelColor = "#FFFFFFFF"; // 黑色文字
+        label.iconPath = "";            // 不显示图标
+        label.isCustomPath = false;
+
+        label.iconScale = 1.0f;
+        label.iconAlign = Constants.ICON_ALIGNMENT_CENTER_CENTER;
+
+        label.geoPoints.add(center);
+
+        long elementId = mEarthFragment.drawElement(label, true);
+        layerManager.addLayer(selectedLayerType, elementId);
+    }
+
+    private GeoPoint computeLineCenter(List<GeoPoint> pts) {
+        int mid = pts.size() / 2;
+        return pts.get(mid);
+    }
 }

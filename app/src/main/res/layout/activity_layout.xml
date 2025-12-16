@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#073F52"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="80dp"
+        android:layout_marginTop="15dp"
+        android:text="选择图层类型"
+        android:textColor="@color/white"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <CheckBox
+        android:id="@+id/cb_1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="15dp"
+        android:button="@null"
+        android:drawableLeft="@drawable/checkbox_selector"
+        android:drawablePadding="15dp"
+        android:gravity="center"
+        android:text="渔场"
+        android:textColor="@drawable/checkbox_selector_color"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_title" />
+
+    <View
+        android:id="@+id/v_1"
+        android:layout_width="270dp"
+        android:layout_height="1dp"
+        android:layout_marginLeft="31dp"
+        android:layout_marginTop="7dp"
+        android:background="#80FFFFFF"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cb_1" />
+
+    <CheckBox
+        android:id="@+id/cb_2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="7dp"
+        android:button="@null"
+        android:drawableLeft="@drawable/checkbox_selector"
+        android:drawablePadding="15dp"
+        android:gravity="center"
+        android:text="领海基线"
+        android:textColor="@drawable/checkbox_selector_color"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/v_1" />
+
+    <View
+        android:id="@+id/v_2"
+        android:layout_width="270dp"
+        android:layout_height="1dp"
+        android:layout_marginLeft="31dp"
+        android:layout_marginTop="7dp"
+        android:background="#80FFFFFF"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cb_2" />
+
+    <CheckBox
+        android:id="@+id/cb_3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="7dp"
+        android:button="@null"
+        android:drawableLeft="@drawable/checkbox_selector"
+        android:drawablePadding="15dp"
+        android:gravity="center"
+        android:text="中韩渔业协定水域"
+        android:textColor="@drawable/checkbox_selector_color"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/v_2" />
+
+    <View
+        android:id="@+id/v_3"
+        android:layout_width="270dp"
+        android:layout_height="1dp"
+        android:layout_marginLeft="31dp"
+        android:layout_marginTop="7dp"
+        android:background="#80FFFFFF"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cb_3" />
+
+    <CheckBox
+        android:id="@+id/cb_4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="7dp"
+        android:button="@null"
+        android:drawableLeft="@drawable/checkbox_selector"
+        android:drawablePadding="15dp"
+        android:gravity="center"
+        android:text="中日渔业协定水域"
+        android:textColor="@drawable/checkbox_selector_color"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/v_3" />
+
+    <View
+        android:id="@+id/v_4"
+        android:layout_width="270dp"
+        android:layout_height="1dp"
+        android:layout_marginLeft="31dp"
+        android:layout_marginTop="7dp"
+        android:background="#80FFFFFF"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cb_4" />
+
+    <CheckBox
+        android:id="@+id/cb_5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="7dp"
+        android:button="@null"
+        android:drawableLeft="@drawable/checkbox_selector"
+        android:drawablePadding="15dp"
+        android:gravity="center"
+        android:text="台风预警"
+        android:textColor="@drawable/checkbox_selector_color"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/v_4" />
+
+    <View
+        android:id="@+id/v_5"
+        android:layout_width="270dp"
+        android:layout_height="1dp"
+        android:layout_marginLeft="31dp"
+        android:layout_marginTop="7dp"
+        android:background="#80FFFFFF"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cb_5" />
+
+    <CheckBox
+        android:id="@+id/cb_6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="7dp"
+        android:button="@null"
+        android:drawableLeft="@drawable/checkbox_selector"
+        android:drawablePadding="15dp"
+        android:gravity="center"
+        android:text="气象信息"
+        android:textColor="@drawable/checkbox_selector_color"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/v_5" />
+
+    <TextView
+        android:id="@+id/tv_show_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:text="显示："
+        android:textColor="#9CB2BA"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/cb_6"
+        app:layout_constraintLeft_toRightOf="@id/v_5"
+        app:layout_constraintTop_toTopOf="@id/cb_6" />
+
+    <TextView
+        android:id="@+id/tv_show"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="12小时"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/tv_show_title"
+        app:layout_constraintLeft_toRightOf="@id/tv_show_title"
+        app:layout_constraintTop_toTopOf="@id/tv_show_title" />
+
+    <TextView
+        android:id="@+id/tv_show_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:text="内气象信息"
+        android:textColor="#9CB2BA"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/tv_show"
+        app:layout_constraintLeft_toRightOf="@id/tv_show"
+        app:layout_constraintTop_toTopOf="@id/tv_show" />
+
+
+    <ImageView
+        android:id="@+id/iv_increase_frequency"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="25dp"
+        android:src="@mipmap/ic_increase_frequency"
+        app:layout_constraintLeft_toLeftOf="@id/tv_show_title"
+        app:layout_constraintTop_toBottomOf="@id/tv_show_title" />
+
+    <ImageView
+        android:id="@+id/iv_decrease_frequency"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@mipmap/ic_decrease_frequency"
+        app:layout_constraintBottom_toBottomOf="@id/iv_increase_frequency"
+        app:layout_constraintLeft_toRightOf="@id/tv_show"
+        app:layout_constraintTop_toTopOf="@id/iv_increase_frequency" />
+
+
+    <View
+        android:id="@+id/v_divider"
+        android:layout_width="2dp"
+        android:layout_height="0dp"
+        android:layout_marginRight="480dp"
+        android:background="@color/black"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#185266"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="@id/v_divider"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="50dp"
+        android:background="@mipmap/ic_back_bg"
+        android:drawableLeft="@mipmap/ic_back_2"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="返回"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/v_divider"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_sure"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="150dp"
+        android:background="@mipmap/ic_back_bg"
+        android:drawableLeft="@mipmap/ic_sure"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="确定"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@id/tv_back"
+        app:layout_constraintLeft_toLeftOf="@id/tv_back"
+        app:layout_constraintRight_toRightOf="@id/tv_back" />
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,87 @@
+{
+  "distressCodeTable": {
+    "version": "1.0",
+    "updateTime": "2025-12-12",
+    "description": "渔船遇险类型标准化编码对照表（基于IMO/GMDSS规范适配）",
+    "codeList": [
+      {
+        "code": "D01",
+        "category": "通用类",
+        "distressName": "碰撞/搁浅/触礁",
+        "coreDescription": "与其他船舶、礁石、浅滩、养殖网箱/航标等碰撞/搁浅，船体受损/进水"
+      },
+      {
+        "code": "D02",
+        "category": "通用类",
+        "distressName": "火灾/爆炸",
+        "coreDescription": "机舱、渔获舱、燃油舱等区域因电路/燃油/明火引发火灾/爆炸，伴随烟雾/结构烧毁"
+      },
+      {
+        "code": "D03",
+        "category": "通用类",
+        "distressName": "船体进水/沉没风险",
+        "coreDescription": "船体破损致大量进水，船舶稳性丧失，面临倾覆/沉没威胁"
+      },
+      {
+        "code": "D04",
+        "category": "通用类",
+        "distressName": "动力/操纵系统故障",
+        "coreDescription": "主机、舵机、螺旋桨等瘫痪，渔船失控漂流（含渔具缠绕螺旋桨间接导致的动力失效）"
+      },
+      {
+        "code": "D05",
+        "category": "通用类",
+        "distressName": "人员遇险",
+        "coreDescription": "船员落水、失踪、重伤/急病、被困（含甲板作业拖拽落水）"
+      },
+      {
+        "code": "D06",
+        "category": "通用类",
+        "distressName": "恶劣天气/海况受损",
+        "coreDescription": "遭遇台风、巨浪、海冰等，船体变形/设备损毁/甲板淹浸"
+      },
+      {
+        "code": "D07",
+        "category": "通用类",
+        "distressName": "海盗/武装袭击",
+        "coreDescription": "登船抢劫、劫持等，船员生命/财产受威胁（近海渔船罕见，远海作业需关注）"
+      },
+      {
+        "code": "D08",
+        "category": "通用类",
+        "distressName": "危险品泄漏",
+        "coreDescription": "燃油、渔用化学品泄漏，引发污染/人员中毒"
+      },
+      {
+        "code": "F01",
+        "category": "渔船专属类",
+        "distressName": "渔具缠绕/丢失",
+        "coreDescription": "拖网/围网等缠绕螺旋桨（直接致动力故障），或渔具被勾挂引发船舶失控/渔具丢失"
+      },
+      {
+        "code": "F02",
+        "category": "渔船专属类",
+        "distressName": "渔获舱/制冷系统故障",
+        "coreDescription": "冷藏设备瘫痪致渔获变质，或渔获舱进水/故障引发船员中毒（腐败气体）"
+      },
+      {
+        "code": "F03",
+        "category": "渔船专属类",
+        "distressName": "甲板作业事故",
+        "coreDescription": "起网/分拣渔获时船员坠落、挤压受伤，或被渔具拖拽落水"
+      },
+      {
+        "code": "F04",
+        "category": "渔船专属类",
+        "distressName": "养殖区作业被困",
+        "coreDescription": "误入养殖区被缆绳/设施缠绕，无法自主脱困"
+      },
+      {
+        "code": "T00",
+        "category": "测试类",
+        "distressName": "测试报警",
+        "coreDescription": "SOS终端功能测试，非真实遇险场景"
+      }
+    ]
+  }
+}

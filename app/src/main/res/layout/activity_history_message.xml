@@ -4,79 +4,102 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#185266"
-    android:gravity="center"
-    android:orientation="vertical">
+    android:gravity="center">
 
-    <Button
-        android:id="@+id/btn_short_message"
-        android:layout_width="0dp"
-        android:layout_height="50dp"
-        android:background="@mipmap/ic_not_selected"
-        android:text="短消息"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/btn_government_affairs_message"
-        app:layout_constraintTop_toTopOf="parent" />
-
+    <!-- 气象信息 -->
     <Button
         android:id="@+id/btn_government_affairs_message"
         android:layout_width="0dp"
         android:layout_height="50dp"
-        android:background="@mipmap/ic_btn_selected"
-        android:text="政务消息"
+        android:background="@drawable/bg_history_selector"
+        android:text="气象信息"
         android:textColor="@color/white"
         android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="@id/btn_short_message"
-        app:layout_constraintLeft_toRightOf="@id/btn_short_message"
+        app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@id/btn_typhoon"
-        app:layout_constraintTop_toTopOf="@id/btn_short_message" />
+        app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- 台风预警 -->
     <Button
         android:id="@+id/btn_typhoon"
         android:layout_width="0dp"
         android:layout_height="50dp"
-        android:background="@mipmap/ic_btn_selected"
-        android:text="台风"
+        android:background="@drawable/bg_history_selector"
+        android:text="台风预警"
         android:textColor="@color/white"
         android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="@id/btn_government_affairs_message"
         app:layout_constraintLeft_toRightOf="@id/btn_government_affairs_message"
         app:layout_constraintRight_toLeftOf="@id/btn_beidou_message"
-        app:layout_constraintTop_toTopOf="@id/btn_government_affairs_message" />
+        app:layout_constraintTop_toTopOf="@id/btn_government_affairs_message"
+        app:layout_constraintBottom_toBottomOf="@id/btn_government_affairs_message" />
 
+    <!-- 北斗消息 -->
     <Button
         android:id="@+id/btn_beidou_message"
         android:layout_width="0dp"
         android:layout_height="50dp"
-        android:background="@mipmap/ic_btn_selected"
+        android:background="@drawable/bg_history_selector"
         android:text="北斗消息"
         android:textColor="@color/white"
         android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="@id/btn_typhoon"
         app:layout_constraintLeft_toRightOf="@id/btn_typhoon"
-        app:layout_constraintRight_toLeftOf="@id/btn_image"
-        app:layout_constraintTop_toTopOf="@id/btn_typhoon" />
+        app:layout_constraintRight_toLeftOf="@id/btn_short_message"
+        app:layout_constraintTop_toTopOf="@id/btn_typhoon"
+        app:layout_constraintBottom_toBottomOf="@id/btn_typhoon" />
 
+    <!-- 短信息 -->
+    <Button
+        android:id="@+id/btn_short_message"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:background="@drawable/bg_history_selector"
+        android:text="短信息"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        app:layout_constraintLeft_toRightOf="@id/btn_beidou_message"
+        app:layout_constraintRight_toLeftOf="@id/btn_image"
+        app:layout_constraintTop_toTopOf="@id/btn_beidou_message"
+        app:layout_constraintBottom_toBottomOf="@id/btn_beidou_message" />
+
+    <!-- 图片信息 -->
     <Button
         android:id="@+id/btn_image"
         android:layout_width="0dp"
         android:layout_height="50dp"
-        android:background="@mipmap/ic_btn_selected"
-        android:text="图片"
+        android:background="@drawable/bg_history_selector"
+        android:text="图片信息"
         android:textColor="@color/white"
         android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="@id/btn_beidou_message"
-        app:layout_constraintLeft_toRightOf="@id/btn_beidou_message"
+        app:layout_constraintLeft_toRightOf="@id/btn_short_message"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@id/btn_beidou_message" />
+        app:layout_constraintTop_toTopOf="@id/btn_short_message"
+        app:layout_constraintBottom_toBottomOf="@id/btn_short_message" />
 
+    <!-- 列表 -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_message"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/btn_government_affairs_message"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_short_message" />
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <!-- 返回 -->
+    <TextView
+        android:id="@+id/tv_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="80dp"
+        android:layout_marginBottom="50dp"
+        android:background="@mipmap/ic_back_bg"
+        android:drawableLeft="@mipmap/ic_back_2"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="返回"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -2,78 +2,65 @@ package com.yxh.fangs.bean;
 
 public class DeviceRegisterResponse {
 
-    private Integer code;
-    private String msg;
-    private Data data;
+    /**
+     * code : 200
+     * msg : 操作成功
+     * data : {"id":"2000038207204659202","deviceSn":"deviceSn_cs4","deviceName":"deviceName_cs","deviceModel":"deviceModel_cs","status":"0","installTime":"2025-12-14 11:00:42","licenseId":"2000038040380411906","licenseKey":"MjAyNS0xMi0yMCAwMDowMDowMA==","remark":null}
+     */
 
-    // =============================
-    // inner class: Data
-    // =============================
-    public static class Data {
-        private String createDept;
-        private String createBy;
-        private String createTime;
-        private String updateBy;
-        private String updateTime;
+    private int code;
+    private String msg;
+    private DataBean data;
+
+    public int getCode() {
+        return code;
+    }
+
+    public void setCode(int code) {
+        this.code = code;
+    }
+
+    public String getMsg() {
+        return msg == null ? "" : msg;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
+    }
+
+    public DataBean getData() {
+        return data;
+    }
+
+    public void setData(DataBean data) {
+        this.data = data;
+    }
+
+    public static class DataBean {
+        /**
+         * id : 2000038207204659202
+         * deviceSn : deviceSn_cs4
+         * deviceName : deviceName_cs
+         * deviceModel : deviceModel_cs
+         * status : 0
+         * installTime : 2025-12-14 11:00:42
+         * licenseId : 2000038040380411906
+         * licenseKey : MjAyNS0xMi0yMCAwMDowMDowMA==
+         * remark : null
+         */
+
         private String id;
         private String deviceSn;
         private String deviceName;
         private String deviceModel;
         private String status;
-        private String userId;
-        private String phonenumber;
-        private String lastLocationId;
-        private String longitude;
-        private String latitude;
-        private String address;
         private String installTime;
-        private String warrantyEndTime;
+        private String licenseId;
         private String licenseKey;
-        private String remark;
-
-        // Getter & Setter
-        public String getCreateDept() {
-            return createDept;
-        }
-
-        public void setCreateDept(String createDept) {
-            this.createDept = createDept;
-        }
-
-        public String getCreateBy() {
-            return createBy;
-        }
-
-        public void setCreateBy(String createBy) {
-            this.createBy = createBy;
-        }
-
-        public String getCreateTime() {
-            return createTime;
-        }
-
-        public void setCreateTime(String createTime) {
-            this.createTime = createTime;
-        }
-
-        public String getUpdateBy() {
-            return updateBy;
-        }
-
-        public void setUpdateBy(String updateBy) {
-            this.updateBy = updateBy;
-        }
-
-        public String getUpdateTime() {
-            return updateTime;
-        }
-
-        public void setUpdateTime(String updateTime) {
-            this.updateTime = updateTime;
-        }
+        private Object remark;
 
         public String getId() {
-            return id;
+            return id == null ? "" : id;
         }
 
         public void setId(String id) {
@@ -81,7 +68,7 @@ public class DeviceRegisterResponse {
         }
 
         public String getDeviceSn() {
-            return deviceSn;
+            return deviceSn == null ? "" : deviceSn;
         }
 
         public void setDeviceSn(String deviceSn) {
@@ -89,7 +76,7 @@ public class DeviceRegisterResponse {
         }
 
         public String getDeviceName() {
-            return deviceName;
+            return deviceName == null ? "" : deviceName;
         }
 
         public void setDeviceName(String deviceName) {
@@ -97,7 +84,7 @@ public class DeviceRegisterResponse {
         }
 
         public String getDeviceModel() {
-            return deviceModel;
+            return deviceModel == null ? "" : deviceModel;
         }
 
         public void setDeviceModel(String deviceModel) {
@@ -105,119 +92,43 @@ public class DeviceRegisterResponse {
         }
 
         public String getStatus() {
-            return status;
+            return status == null ? "" : status;
         }
 
         public void setStatus(String status) {
             this.status = status;
         }
 
-        public String getUserId() {
-            return userId;
-        }
-
-        public void setUserId(String userId) {
-            this.userId = userId;
-        }
-
-        public String getPhonenumber() {
-            return phonenumber;
-        }
-
-        public void setPhonenumber(String phonenumber) {
-            this.phonenumber = phonenumber;
-        }
-
-        public String getLastLocationId() {
-            return lastLocationId;
-        }
-
-        public void setLastLocationId(String lastLocationId) {
-            this.lastLocationId = lastLocationId;
-        }
-
-        public String getLongitude() {
-            return longitude;
-        }
-
-        public void setLongitude(String longitude) {
-            this.longitude = longitude;
-        }
-
-        public String getLatitude() {
-            return latitude;
-        }
-
-        public void setLatitude(String latitude) {
-            this.latitude = latitude;
-        }
-
-        public String getAddress() {
-            return address;
-        }
-
-        public void setAddress(String address) {
-            this.address = address;
-        }
-
         public String getInstallTime() {
-            return installTime;
+            return installTime == null ? "" : installTime;
         }
 
         public void setInstallTime(String installTime) {
             this.installTime = installTime;
         }
 
-        public String getWarrantyEndTime() {
-            return warrantyEndTime;
+        public String getLicenseId() {
+            return licenseId == null ? "" : licenseId;
         }
 
-        public void setWarrantyEndTime(String warrantyEndTime) {
-            this.warrantyEndTime = warrantyEndTime;
+        public void setLicenseId(String licenseId) {
+            this.licenseId = licenseId;
         }
 
         public String getLicenseKey() {
-            return licenseKey;
+            return licenseKey == null ? "" : licenseKey;
         }
 
         public void setLicenseKey(String licenseKey) {
             this.licenseKey = licenseKey;
         }
 
-        public String getRemark() {
+        public Object getRemark() {
             return remark;
         }
 
-        public void setRemark(String remark) {
+        public void setRemark(Object remark) {
             this.remark = remark;
         }
     }
-
-    // =============================
-    // Getter & Setter for outer class
-    // =============================
-    public Integer getCode() {
-        return code;
-    }
-
-    public void setCode(Integer code) {
-        this.code = code;
-    }
-
-    public String getMsg() {
-        return msg;
-    }
-
-    public void setMsg(String msg) {
-        this.msg = msg;
-    }
-
-    public Data getData() {
-        return data;
-    }
-
-    public void setData(Data data) {
-        this.data = data;
-    }
-
 }

@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">气象监测</string>
+    <string name="app_name">海事短波通信接收机</string>
+    <string name="sos_sending_tip">您的“%s”求救信息，持续发送中！\n关闭该窗口需取消本次求救！</string>
+
 </resources>

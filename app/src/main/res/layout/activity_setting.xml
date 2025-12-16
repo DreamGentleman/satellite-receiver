@@ -204,4 +204,20 @@
         app:layout_constraintBottom_toBottomOf="@+id/tv_auto_unlink_interval_title"
         app:layout_constraintRight_toRightOf="@+id/tv_turn_on_bluetooth"
         app:layout_constraintTop_toTopOf="@+id/tv_auto_unlink_interval_title" />
+
+    <TextView
+        android:id="@+id/tv_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="80dp"
+        android:layout_marginBottom="50dp"
+        android:background="@mipmap/ic_back_bg"
+        android:drawableLeft="@mipmap/ic_back_2"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="返回"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>中韩渔业协定暂定措施水域</name>
+    <!-- 自定义样式：蓝色半透明填充+红色边界线 -->
+    <Style id="provisionalAreaStyle">
+      <PolyStyle>
+        <color>7fff40a0</color> <!-- 半透明蓝色，格式为透明度+颜色十六进制 -->
+        <outline>1</outline> <!-- 显示边界线 -->
+      </PolyStyle>
+      <LineStyle>
+        <color>ffff0000</color> <!-- 边界线为红色 -->
+        <width>3</width> <!-- 边界线宽度 -->
+      </LineStyle>
+    </Style>
+
+    <!-- 暂定措施水域闭合区域 -->
+    <Placemark>
+      <name>中韩渔业协定暂定措施水域</name>
+      <description>依据《中华人民共和国政府和大韩民国政府渔业协定》第七条第一款划定，为17个基点顺次连线围成的闭合水域</description>
+      <styleUrl>#provisionalAreaStyle</styleUrl>
+      <Polygon>
+        <tessellate>1</tessellate>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              123.666667,37.000000,0
+              123.181111,36.373056,0
+              122.198333,35.500000,0
+              122.031667,35.500000,0
+              122.031667,34.000000,0
+              122.198333,34.000000,0
+              122.683333,33.333333,0
+              123.750000,32.333333,0
+              123.825000,32.183333,0
+              125.416667,32.183333,0
+              124.133333,33.333333,0
+              124.008333,34.000000,0
+              124.125000,35.000000,0
+              124.500000,35.500000,0
+              124.500000,36.750000,0
+              124.333333,37.000000,0
+              123.666667,37.000000,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>

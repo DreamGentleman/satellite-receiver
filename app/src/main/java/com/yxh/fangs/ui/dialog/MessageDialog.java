@@ -4,6 +4,7 @@ package com.yxh.fangs.ui.dialog;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Build;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,18 +18,22 @@ public class MessageDialog extends AlertDialog {
     private Context mContext;
     private OnPromptButtonClickedListener mPromptButtonClickedListener;
     private String mPositiveButton;
-    private String mMessage;
+    private String mTitle;
+    private String mContent;
+    private String mTime;
     private int mLayoutResId;
 
-    public static MessageDialog newInstance(final Context context, String message) {
-        return new MessageDialog(context, message);
+    public static MessageDialog newInstance(final Context context, String title, String content, String time) {
+        return new MessageDialog(context, title, content, time);
     }
 
-    public MessageDialog(final Context context, String message) {
+    public MessageDialog(final Context context, String title, String content, String time) {
         super(context);
         mLayoutResId = R.layout.dialog_message;
         mContext = context;
-        mMessage = message;
+        mTitle = title;
+        mContent = content;
+        mTime = time;
     }
 
     @Override
@@ -48,8 +53,11 @@ public class MessageDialog extends AlertDialog {
                 dismiss();
             }
         });
-        tvMessage.setText(mMessage);
-
+        tvMessage.setText(mTitle + "，" + mContent);
+        tvTime.setText("接收时间：" + mTime);
+        if (TextUtils.isEmpty(mTime)) {
+            tvTime.setVisibility(View.GONE);
+        }
         setContentView(view);
         WindowManager.LayoutParams layoutParams = getWindow().getAttributes();
         layoutParams.width = (int) (getScreenWidth() * 0.45);

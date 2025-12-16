@@ -2,29 +2,20 @@ package com.yxh.fangs.bean;
 
 public class DeviceRegisterRequest {
 
+    /**
+     * deviceSn : deviceSn_cs4
+     * deviceName : deviceName_cs
+     * deviceModel : deviceModel_cs
+     * licenseKey : MjAyNS0xMi0yMCAwMDowMDowMA==
+     */
+
     private String deviceSn;
     private String deviceName;
     private String deviceModel;
-    private String longitude;
-    private String latitude;
-    private String address;
-    private String phonenumber;
-
-    public DeviceRegisterRequest() {
-    }
-
-    public DeviceRegisterRequest(String deviceSn, String deviceName, String deviceModel, String longitude, String latitude, String address, String phonenumber) {
-        this.deviceSn = deviceSn;
-        this.deviceName = deviceName;
-        this.deviceModel = deviceModel;
-        this.longitude = longitude;
-        this.latitude = latitude;
-        this.address = address;
-        this.phonenumber = phonenumber;
-    }
+    private String licenseKey;
 
     public String getDeviceSn() {
-        return deviceSn;
+        return deviceSn == null ? "" : deviceSn;
     }
 
     public void setDeviceSn(String deviceSn) {
@@ -32,7 +23,7 @@ public class DeviceRegisterRequest {
     }
 
     public String getDeviceName() {
-        return deviceName;
+        return deviceName == null ? "" : deviceName;
     }
 
     public void setDeviceName(String deviceName) {
@@ -40,55 +31,18 @@ public class DeviceRegisterRequest {
     }
 
     public String getDeviceModel() {
-        return deviceModel;
+        return deviceModel == null ? "" : deviceModel;
     }
 
     public void setDeviceModel(String deviceModel) {
         this.deviceModel = deviceModel;
     }
 
-    public String getLongitude() {
-        return longitude;
+    public String getLicenseKey() {
+        return licenseKey == null ? "" : licenseKey;
     }
 
-    public void setLongitude(String longitude) {
-        this.longitude = longitude;
-    }
-
-    public String getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(String latitude) {
-        this.latitude = latitude;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getPhonenumber() {
-        return phonenumber;
-    }
-
-    public void setPhonenumber(String phonenumber) {
-        this.phonenumber = phonenumber;
-    }
-
-    @Override
-    public String toString() {
-        return "DeviceRegisterRequest{" +
-                "deviceSn='" + deviceSn + '\'' +
-                ", deviceName='" + deviceName + '\'' +
-                ", deviceModel='" + deviceModel + '\'' +
-                ", longitude='" + longitude + '\'' +
-                ", latitude='" + latitude + '\'' +
-                ", address='" + address + '\'' +
-                ", phonenumber='" + phonenumber + '\'' +
-                '}';
+    public void setLicenseKey(String licenseKey) {
+        this.licenseKey = licenseKey;
     }
 }

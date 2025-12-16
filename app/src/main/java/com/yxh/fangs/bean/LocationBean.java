@@ -3,14 +3,14 @@ package com.yxh.fangs.bean;
 public class LocationBean {
     private double latitude;
     private double longitude;
-    private String ic;
+    private int ic;
 
     public LocationBean(double latitude, double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
     }
 
-    public LocationBean(double latitude, double longitude, String ic) {
+    public LocationBean(double latitude, double longitude, int ic) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.ic = ic;
@@ -32,11 +32,11 @@ public class LocationBean {
         this.longitude = longitude;
     }
 
-    public String getIc() {
-        return ic == null ? "" : ic;
+    public int getIc() {
+        return ic;
     }
 
-    public void setIc(String ic) {
+    public void setIc(int ic) {
         this.ic = ic;
     }
 }

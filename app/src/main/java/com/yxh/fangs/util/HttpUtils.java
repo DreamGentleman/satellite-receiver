@@ -22,12 +22,12 @@ public class HttpUtils {
     // 回调接口
     public interface HttpCallback {
         void onSuccess(String body);
+
         void onError(String msg);
     }
 
     // GET
     public static void get(String url, HttpCallback callback) {
-
         Request request = new Request.Builder()
                 .url(url)
                 .get()
@@ -38,14 +38,12 @@ public class HttpUtils {
 
     // POST - 表单
     public static void postForm(String url, Map<String, String> params, HttpCallback callback) {
-
         FormBody.Builder formBuilder = new FormBody.Builder();
         if (params != null) {
             for (String key : params.keySet()) {
                 formBuilder.add(key, params.get(key));
             }
         }
-
         Request request = new Request.Builder()
                 .url(url)
                 .post(formBuilder.build())
@@ -56,36 +54,38 @@ public class HttpUtils {
 
     // POST - JSON
     public static void postJson(String url, String json, HttpCallback callback) {
-
         RequestBody body = RequestBody.create(JSON, json);
-
         Request request = new Request.Builder()
                 .url(url)
                 .post(body)
                 .build();
-
         execute(request, callback);
     }
 
     // 执行请求
     private static void execute(Request request, HttpCallback callback) {
-
         HttpClient.getInstance().newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 mainHandler.post(() -> {
-                    if (callback != null) callback.onError(e.getMessage());
+                    try {
+                        if (callback != null) callback.onError(e.getMessage());
+                    } catch (Exception e2) {
+                        e2.printStackTrace();
+                    }
                 });
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-
                 String body = response.body().string();
-
                 mainHandler.post(() -> {
                     if (response.isSuccessful()) {
-                        if (callback != null) callback.onSuccess(body);
+                        try {
+                            if (callback != null) callback.onSuccess(body);
+                        } catch (Exception e2) {
+                            e2.printStackTrace();
+                        }
                     } else {
                         if (callback != null) callback.onError("HTTP " + response.code());
                     }

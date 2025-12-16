@@ -25,6 +25,9 @@ public class BaseActivity extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         // 沉浸式隐藏系统栏
         hideSystemUI();
+        getWindow().getDecorView()
+                .getViewTreeObserver()
+                .addOnGlobalLayoutListener(() -> hideSystemUI());
     }
 
     @Override
@@ -71,5 +74,13 @@ public class BaseActivity extends AppCompatActivity {
 
     public void hideLoading() {
         loadingDialog.dismiss();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            hideSystemUI();
+        }
     }
 }

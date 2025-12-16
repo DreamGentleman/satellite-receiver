@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>中日渔业协定暂定措施水域</name>
+    <Style id="waterAreaStyle">
+      <!-- 水域填充样式：浅蓝色半透明 -->
+      <PolyStyle>
+        <color>7fff66cc</color>
+        <outline>1</outline>
+      </PolyStyle>
+      <!-- 边界线样式：红色实线 -->
+      <LineStyle>
+        <color>ffff0000</color>
+        <width>3</width>
+      </LineStyle>
+    </Style>
+
+    <!-- 暂定措施水域闭合区域 -->
+    <Placemark>
+      <name>中日渔业协定暂定措施水域</name>
+      <description>依据《中日渔业协定》第七条第一款划定，为11个基点顺次连线围成的闭合水域</description>
+      <styleUrl>#waterAreaStyle</styleUrl>
+      <Polygon>
+        <tessellate>1</tessellate>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              124.168333,30.666667,0
+              123.940000,30.000000,0
+              123.425000,29.000000,0
+              122.798333,28.000000,0
+              121.956667,27.000000,0
+              125.971667,27.000000,0
+              127.251667,28.000000,0
+              128.015000,29.000000,0
+              128.536667,30.000000,0
+              128.435000,30.666667,0
+              124.168333,30.666667,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>

@@ -21,112 +21,10 @@
             android:layout_height="match_parent" />
     </FrameLayout>
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_marginTop="80dp"
-        android:layout_marginEnd="12dp"
-        android:orientation="vertical"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <Button
-            android:id="@+id/offlineTv"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
-            android:text="离线地图加载" />
-
-        <Button
-            android:id="@+id/onlineTv"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="12dp"
-            android:text="在线地图加载" />
-
-        <Button
-            android:id="@+id/locationTv"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="12dp"
-            android:text="当前位置" />
-
-        <Button
-            android:id="@+id/lineTv"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="12dp"
-            android:text="画线" />
-
-        <Button
-            android:id="@+id/drawLineTv"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="12dp"
-            android:text="手画线" />
-
-        <Button
-            android:id="@+id/pointTv"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="12dp"
-            android:text="画点" />
-
-        <Button
-            android:id="@+id/drawPointTv"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="12dp"
-            android:text="手画点" />
-
-        <Button
-            android:id="@+id/drawPlaneTv"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="12dp"
-            android:text="手画面" />
-
-        <Button
-            android:id="@+id/drawRevocationTv"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="12dp"
-            android:text="撤销当前线绘制" />
-
-        <Button
-            android:id="@+id/typhoonTv"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="12dp"
-            android:text="模拟台风轨迹风圈绘制" />
-    </LinearLayout>
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:background="#B2808080"
+        android:background="#4D808080"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -140,6 +38,7 @@
             android:drawableTop="@mipmap/ic_weather_setting"
             android:gravity="center"
             android:text="查看天气"
+            android:textColor="@color/white"
             app:layout_constraintBottom_toTopOf="@+id/tv_parameter_settings"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -154,6 +53,7 @@
             android:drawableTop="@mipmap/ic_parameter_settings"
             android:gravity="center"
             android:text="参数设置"
+            android:textColor="@color/white"
             app:layout_constraintBottom_toTopOf="@+id/tv_historical_data"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tv_weather"
@@ -166,6 +66,7 @@
             android:drawableTop="@mipmap/ic_historical_data"
             android:gravity="center"
             android:text="历史数据"
+            android:textColor="@color/white"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tv_parameter_settings"
@@ -173,89 +74,74 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="wrap_content"
+        android:layout_width="350dp"
         android:layout_height="0dp"
         android:background="#B2808080"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <View
+            android:id="@+id/v_divider_right"
+            android:layout_width="100dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <ImageView
-            android:id="@+id/iv_typhoon_cleanup"
+            android:id="@+id/iv_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="25dp"
             android:layout_marginTop="35dp"
-            android:src="@mipmap/ic_typhoon_cleanup"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toLeftOf="@+id/iv_volume"
+            android:src="@mipmap/ic_layer"
+            app:layout_constraintLeft_toLeftOf="@id/v_divider_right"
+            app:layout_constraintRight_toRightOf="@id/v_divider_right"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
             android:id="@+id/iv_volume"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="14dp"
-            android:src="@mipmap/ic_volume"
-            app:layout_constraintBottom_toBottomOf="@id/iv_typhoon_cleanup"
-            app:layout_constraintLeft_toRightOf="@id/iv_typhoon_cleanup"
-            app:layout_constraintRight_toLeftOf="@+id/iv_bluetooth"
-            app:layout_constraintTop_toTopOf="@id/iv_typhoon_cleanup" />
-
-        <ImageView
-            android:id="@+id/iv_bluetooth"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="14dp"
-            android:src="@mipmap/ic_bluetooth"
-            app:layout_constraintBottom_toBottomOf="@id/iv_volume"
-            app:layout_constraintLeft_toRightOf="@id/iv_volume"
-            app:layout_constraintRight_toLeftOf="@id/iv_sos"
-            app:layout_constraintTop_toTopOf="@id/iv_volume" />
+            android:layout_marginTop="20dp"
+            android:src="@drawable/volume_selector"
+            app:layout_constraintLeft_toLeftOf="@id/iv_layout"
+            app:layout_constraintRight_toRightOf="@id/iv_layout"
+            app:layout_constraintTop_toBottomOf="@id/iv_layout" />
 
         <ImageView
             android:id="@+id/iv_sos"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="14dp"
+            android:layout_marginTop="20dp"
             android:src="@mipmap/ic_sos"
-            app:layout_constraintBottom_toBottomOf="@id/iv_bluetooth"
-            app:layout_constraintLeft_toRightOf="@id/iv_bluetooth"
-            app:layout_constraintRight_toLeftOf="@id/iv_fault_clearance"
-            app:layout_constraintTop_toTopOf="@id/iv_bluetooth" />
+            app:layout_constraintLeft_toLeftOf="@id/iv_volume"
+            app:layout_constraintRight_toRightOf="@id/iv_volume"
+            app:layout_constraintTop_toBottomOf="@id/iv_volume" />
 
         <ImageView
-            android:id="@+id/iv_fault_clearance"
+            android:id="@+id/iv_location"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="14dp"
-            android:layout_marginRight="25dp"
-            android:src="@mipmap/ic_fault_clearance"
-            app:layout_constraintBottom_toBottomOf="@id/iv_sos"
-            app:layout_constraintLeft_toRightOf="@id/iv_sos"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="@id/iv_sos" />
-
-        <View
-            android:id="@+id/v_divider_1"
-            android:layout_width="0dp"
-            android:layout_height="2dp"
-            android:background="#80FFFFFF"
-            app:layout_constraintLeft_toLeftOf="@id/iv_typhoon_cleanup"
-            app:layout_constraintRight_toRightOf="@id/iv_fault_clearance"
-            app:layout_constraintTop_toBottomOf="@id/iv_typhoon_cleanup" />
+            android:layout_marginTop="20dp"
+            android:src="@mipmap/ic_location"
+            app:layout_constraintLeft_toLeftOf="@id/iv_sos"
+            app:layout_constraintRight_toRightOf="@id/iv_sos"
+            app:layout_constraintTop_toBottomOf="@id/iv_sos" />
 
         <TextView
             android:id="@+id/tv_channel_rate"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
+            android:layout_marginLeft="25dp"
+            android:layout_marginTop="35dp"
             android:text="信道倍率："
             android:textColor="#80FFFFFF"
             android:textSize="15sp"
-            app:layout_constraintLeft_toLeftOf="@id/v_divider_1"
+            app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toLeftOf="@id/tv_snr"
-            app:layout_constraintTop_toBottomOf="@id/v_divider_1" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/tv_snr"
@@ -266,7 +152,7 @@
             android:textSize="15sp"
             app:layout_constraintBottom_toBottomOf="@id/tv_channel_rate"
             app:layout_constraintLeft_toRightOf="@id/tv_channel_rate"
-            app:layout_constraintRight_toRightOf="@id/v_divider_1"
+            app:layout_constraintRight_toLeftOf="@id/v_divider_right"
             app:layout_constraintTop_toTopOf="@id/tv_channel_rate" />
 
         <View
@@ -275,8 +161,8 @@
             android:layout_height="2dp"
             android:layout_marginTop="15dp"
             android:background="#80FFFFFF"
-            app:layout_constraintLeft_toLeftOf="@id/v_divider_1"
-            app:layout_constraintRight_toRightOf="@id/v_divider_1"
+            app:layout_constraintLeft_toLeftOf="@id/tv_channel_rate"
+            app:layout_constraintRight_toRightOf="@id/tv_snr"
             app:layout_constraintTop_toBottomOf="@id/tv_channel_rate" />
 
         <TextView
@@ -356,23 +242,6 @@
             app:layout_constraintRight_toRightOf="@id/v_divider_3"
             app:layout_constraintTop_toBottomOf="@id/tv_validity_period_title" />
 
-        <!--        <TextView-->
-        <!--            android:id="@+id/tv_scrolling_message"-->
-        <!--            android:layout_width="0dp"-->
-        <!--            android:layout_height="wrap_content"-->
-        <!--            android:layout_marginTop="15dp"-->
-        <!--            android:ellipsize="marquee"-->
-        <!--            android:focusable="true"-->
-        <!--            android:focusableInTouchMode="true"-->
-        <!--            android:marqueeRepeatLimit="marquee_forever"-->
-        <!--            android:scrollHorizontally="true"-->
-        <!--            android:singleLine="true"-->
-        <!--            android:text="DR-Ⅱ型短波全数字化气象接收机 DR-Ⅱ型短波全数字化气象接收机"-->
-        <!--            android:textColor="#FFFFFF"-->
-        <!--            android:textSize="15sp"-->
-        <!--            app:layout_constraintLeft_toLeftOf="@id/v_divider_4"-->
-        <!--            app:layout_constraintRight_toRightOf="@id/v_divider_4"-->
-        <!--            app:layout_constraintTop_toBottomOf="@id/v_divider_4" />-->
         <LinearLayout
             android:id="@+id/ll_scrolling_message"
             android:layout_width="0dp"
@@ -414,7 +283,7 @@
             android:layout_height="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/v_divider_right"
             app:layout_constraintTop_toBottomOf="@id/v_divider_5"
             tools:listitem="@layout/item_notice" />
     </androidx.constraintlayout.widget.ConstraintLayout>

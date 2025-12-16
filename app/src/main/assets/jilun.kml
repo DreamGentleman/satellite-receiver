@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>中国沿海机轮拖网禁渔区线（官方精准坐标）</name>
+    
+    <Style id="redLine">
+      <LineStyle>
+        <color>ff0000ff</color>
+        <width>4</width>
+      </LineStyle>
+    </Style>
+
+    <!-- 渤海-黄海-东海北部段（1-19号） -->
+    <Placemark>
+      <name></name>
+      <styleUrl>#redLine</styleUrl>
+      <LineString>
+        <tessellate>1</tessellate>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>
+          124.000000,39.550000,0
+          123.333333,38.933333,0
+          121.000000,38.666667,0
+          121.000000,39.500000,0
+          121.333333,40.000000,0
+          120.500000,40.000000,0
+          119.000000,38.933333,0
+          119.000000,38.200000,0
+          120.000000,37.833333,0
+          120.500000,38.083333,0
+          121.000000,38.083333,0
+          121.016667,38.000000,0
+          123.050000,37.333333,0
+          122.741667,36.802778,0
+          120.633333,35.183333,0
+          123.416667,30.733333,0
+          122.750000,29.000000,0
+          121.500000,27.500000,0
+          121.166667,27.000000,0
+        </coordinates>
+      </LineString>
+    </Placemark>
+
+    <!-- 福建海区段（20-25号） -->
+    <Placemark>
+      <name></name>
+      <styleUrl>#redLine</styleUrl>
+      <LineString>
+        <tessellate>1</tessellate>
+        <altitudeMode>clampToGround</altitudeMode>
+        <coordinates>
+          121.166667,27.000000,0
+          120.666667,26.500000,0
+          120.333333,26.000000,0
+          119.833333,25.500000,0
+          118.666667,24.500000,0
+          117.666667,23.166667,0
+        </coordinates>
+      </LineString>
+    </Placemark>
+
+    <!-- 南海区（26-40号） -->
+<Placemark>
+  <name></name>
+  <styleUrl>#redLine</styleUrl>
+  <LineString>
+    <tessellate>1</tessellate>
+    <altitudeMode>clampToGround</altitudeMode>
+    <coordinates>
+      117.666667,23.166667,0
+      117.416667,23.000000,0
+      115.166667,22.083333,0
+      114.833333,22.083333,0
+      114.000000,21.500000,0
+      111.583333,20.000000,0
+      110.666667,18.500000,0
+      109.833333,17.833333,0
+      109.000000,18.000000,0
+      108.500000,18.500000,0
+      108.333333,19.000000,0
+      108.166667,19.500000,0
+      108.083333,20.000000,0
+      108.000000,20.500000,0
+      108.000000,21.000000,0
+      108.033333,21.333333,0
+      108.066667,21.516667,0
+    </coordinates>
+  </LineString>
+</Placemark>
+  </Document>
+</kml>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:background="@drawable/update_bg"
+    android:minWidth="300dp">
+
+    <ImageView
+        android:id="@+id/iv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@mipmap/ic_update_new"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="23dp"
+        android:layout_marginTop="14.5dp"
+        android:text="发现新版本"
+        android:textColor="#ff333333"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="@id/iv"
+        app:layout_constraintTop_toBottomOf="@id/iv" />
+
+    <TextView
+        android:id="@+id/tv_version"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="6dp"
+        android:background="@drawable/shape_update_version"
+        android:gravity="center"
+        android:paddingLeft="7dp"
+        android:paddingTop="2dp"
+        android:paddingRight="7dp"
+        android:paddingBottom="2dp"
+        android:textColor="#ffffffff"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_title"
+        app:layout_constraintLeft_toRightOf="@id/tv_title"
+        app:layout_constraintTop_toTopOf="@+id/tv_title"
+        tools:text="v1.3.2" />
+
+    <TextView
+        android:id="@+id/tv_gray"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="13dp"
+        android:text="更新内容："
+        android:textColor="#9DA7B8"
+        app:layout_constraintLeft_toLeftOf="@id/tv_title"
+        app:layout_constraintTop_toBottomOf="@id/tv_version" />
+
+    <TextView
+        android:id="@+id/tv_content"
+        android:layout_width="262dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="13dp"
+        android:lineSpacingExtra="5dp"
+        android:minHeight="81dp"
+        android:textColor="#ff4f4f4f"
+        android:textSize="15sp"
+        app:layout_constraintLeft_toLeftOf="@id/tv_title"
+        app:layout_constraintTop_toBottomOf="@id/tv_gray"
+        tools:text="1、放大工作台红点；\n2、修改家在loading图片；\n3、设置证书登录及用户登录页面可查看的密码；\n4、设置证书登录及用户登录页面可查看的密码" />
+
+    <TextView
+        android:id="@+id/tv_down"
+        android:layout_width="234dp"
+        android:layout_height="36dp"
+        android:layout_marginTop="36dp"
+        android:background="@drawable/shape_update_next"
+        android:gravity="center"
+        android:text="立即更新"
+        android:textColor="#ffffffff"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="@id/iv"
+        app:layout_constraintRight_toRightOf="@id/iv"
+        app:layout_constraintTop_toBottomOf="@id/tv_content" />
+
+    <View
+        android:id="@+id/v_divider"
+        android:layout_width="1dp"
+        android:layout_height="11.5dp"
+        app:layout_constraintLeft_toLeftOf="@id/tv_down"
+        app:layout_constraintRight_toRightOf="@id/tv_down"
+        app:layout_constraintTop_toBottomOf="@id/tv_down" />
+
+    <TextView
+        android:id="@+id/tv_next"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="17dp"
+        android:text="暂不升级"
+        android:textColor="#9DA7B8"
+        android:textSize="14sp"
+        app:layout_constraintLeft_toLeftOf="@id/iv"
+        app:layout_constraintRight_toRightOf="@id/iv"
+        app:layout_constraintTop_toBottomOf="@id/v_divider" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

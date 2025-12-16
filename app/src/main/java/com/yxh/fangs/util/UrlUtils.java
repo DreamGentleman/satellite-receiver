@@ -41,4 +41,16 @@ public class UrlUtils {
     public static String getMessageReceiveUrl(String deviceSn) {
         return getBaseUrl() + "/prod-api/business/messageStatus/listByDeviceSn?deviceSn=" + deviceSn;
     }
+
+    public static String checkUpdate() {
+        return getBaseUrl() + "prod-api/business/appVersion/download";
+    }
+
+    public static String last24Hours(int pageNum, int pageSize) {
+        return getBaseUrl() + "prod-api/business/message/last24Hours?pageNum=" + pageNum + "&pageSize=" + pageSize;
+    }
+
+    public static String history(int pageNum, int pageSize) {
+        return getBaseUrl() + "prod-api/business/message/history?pageNum=" + pageNum + "&pageSize=" + pageSize;
+    }
 }
