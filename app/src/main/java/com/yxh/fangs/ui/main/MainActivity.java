@@ -167,7 +167,6 @@ public class MainActivity extends BaseActivity implements OperationCallback {
         initClicked();
         //TODO 模拟消息
         initNotice();
-        uploadDeviceLocation();
 //        uploadReceiverStatusLog();
         TTSManager.getInstance().init(this, () -> {
             TTSManager.getInstance().speak("语音功能初始化成功！");
@@ -205,7 +204,6 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                         Intent data = result.getData();
                         if (data != null) {
                             String sosContent = data.getStringExtra("handleSosSelected");
-                            //TODO
                             boolean showFishing = sosContent.contains("渔场");
                             boolean showNoFishLine = sosContent.contains("机轮拖网渔业禁渔线");
                             boolean showCoast = sosContent.contains("领海基线");
@@ -213,7 +211,6 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                             boolean showCJFA = sosContent.contains("中日渔业协定水域");
                             boolean showTyphoon = sosContent.contains("台风预警");
                             boolean showRain = sosContent.contains("气象信息");
-
 
                             hideLayer(LayerType.FISHING_GROUND);
                             hideLayer(LayerType.NO_FISHING_LINE);
@@ -223,7 +220,6 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                             hideLayer(LayerType.TYPHOON);
                             hideLayer(LayerType.RAINSTORM);
 
-
                             if (showFishing) showLayer(LayerType.FISHING_GROUND);
                             if (showNoFishLine) showLayer(LayerType.NO_FISHING_LINE);
                             if (showCoast) showLayer(LayerType.COAST_LINE);
@@ -231,38 +227,6 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                             if (showCJFA) showLayer(LayerType.CJFA);
                             if (showTyphoon) showLayer(LayerType.TYPHOON);
                             if (showRain) showLayer(LayerType.RAINSTORM);
-
-
-//                            if (sosContent.contains("渔场")) {
-//                                showLayer(LayerType.FISHING_GROUND);
-//                            } else {
-//                                hideLayer(LayerType.FISHING_GROUND);
-//                            }
-//                            if (sosContent.contains("领海基线")) {
-//                                showLayer(LayerType.COAST_LINE);
-//                            } else {
-//                                hideLayer(LayerType.COAST_LINE);
-//                            }
-//                            if (sosContent.contains("中韩渔业协定水域")) {
-//                                showLayer(LayerType.CKFA);
-//                            } else {
-//                                hideLayer(LayerType.CKFA);
-//                            }
-//                            if (sosContent.contains("中日渔业协定水域")) {
-//                                showLayer(LayerType.CJFA);
-//                            } else {
-//                                hideLayer(LayerType.CJFA);
-//                            }
-//                            if (sosContent.contains("台风预警")) {
-//                                showLayer(LayerType.TYPHOON);
-//                            } else {
-//                                hideLayer(LayerType.TYPHOON);
-//                            }
-//                            if (sosContent.contains("气象信息")) {
-//                                showLayer(LayerType.RAINSTORM);
-//                            } else {
-//                                hideLayer(LayerType.RAINSTORM);
-//                            }
                         }
                     }
                 }
@@ -307,6 +271,9 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                                             MessageDialog dialog = MessageDialog.newInstance(MainActivity.this, rowsBean.getTitle(), content, rowsBean.getPublishTime());
                                             dialog.show();
                                             dialogs.add(dialog);
+                                            if (i == 0) {
+                                                tvScrollingMessage.setText(content);
+                                            }
                                         }
                                         handled = true;
                                         break;
@@ -317,6 +284,10 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                                             MessageDialog dialog = MessageDialog.newInstance(MainActivity.this, rowsBean.getTitle(), content, rowsBean.getPublishTime());
                                             dialog.show();
                                             dialogs.add(dialog);
+
+                                            if (i == 0) {
+                                                tvScrollingMessage.setText(content);
+                                            }
 
                                             selectedLayerType = LayerType.RAINSTORM;
                                             if (warnBean == null
@@ -437,6 +408,10 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                                             Intent intent = new Intent(MainActivity.this, ImageDetailActivity.class);
                                             intent.putExtra("time", rowsBean.getPublishTime());
                                             startActivity(intent);
+
+                                            if (i == 0) {
+                                                tvScrollingMessage.setText("您有一条图片消息");
+                                            }
                                         }
                                         handled = true;
                                         break;
@@ -445,6 +420,9 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                                             MessageDialog dialog = MessageDialog.newInstance(MainActivity.this, rowsBean.getTitle(), rowsBean.getContent(), rowsBean.getPublishTime());
                                             dialog.show();
                                             dialogs.add(dialog);
+                                            if (i == 0) {
+                                                tvScrollingMessage.setText(rowsBean.getTitle());
+                                            }
                                         }
                                         handled = true;
                                         break;
@@ -454,7 +432,9 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                                             MessageDialog dialog = MessageDialog.newInstance(MainActivity.this, rowsBean.getTitle(), typhoonBean.getMovingDirection(), rowsBean.getTitle());
                                             dialog.show();
                                             dialogs.add(dialog);
-
+                                            if (i == 0) {
+                                                tvScrollingMessage.setText("您有一条台风" + typhoonBean.getTyphoonName() + "的消息");
+                                            }
                                             selectedLayerType = LayerType.TYPHOON;
                                             if (typhoonBean == null
                                                     || typhoonBean.getTyphoonInfo() == null
@@ -503,7 +483,6 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                                             Type type2 = new TypeToken<List<WeatherBean>>() {
                                             }.getType();
                                             List<WeatherBean> list2 = new Gson().fromJson(rowsBean.getContent(), type2);
-
                                             if (list2 != null && !list2.isEmpty()) {
                                                 WeatherBean weatherBean = list2.get(0);
                                                 selectedWeatherBean = weatherBean;
@@ -512,6 +491,9 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                                                 WeatherDialog dialog = WeatherDialog.newInstance(MainActivity.this, message, getWeather(weatherBean.getWeatherPhenomenon()));
                                                 dialog.show();
                                                 dialogs.add(dialog);
+                                                if (i == 0) {
+                                                    tvScrollingMessage.setText(message);
+                                                }
                                             }
 
 
@@ -525,7 +507,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                                                             shape.coordinates.color,
                                                             shape.coordinates.radius, ""
                                                     );
-                                                    toAddPointInMap(shape.coordinates.center.lng, shape.coordinates.center.lat, getWeather(weatherBean.getWeatherPhenomenon()), 1f, 0);
+                                                    toAddPointInMap(shape.coordinates.center.lng, shape.coordinates.center.lat, getWeather(weatherBean.getWeatherPhenomenon()), 2f, 0);
                                                 } else if ("rectangle".equals(shape.type)) {
                                                     drawRectangle(
                                                             shape.coordinates.bounds.sw.lng,
@@ -534,7 +516,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                                                             shape.coordinates.bounds.ne.lat,
                                                             shape.coordinates.color, ""
                                                     );
-                                                    toAddPointInMap(shape.coordinates.center.lng, shape.coordinates.center.lat, getWeather(weatherBean.getWeatherPhenomenon()), 1f, 0);
+                                                    toAddPointInMap(shape.coordinates.center.lng, shape.coordinates.center.lat, getWeather(weatherBean.getWeatherPhenomenon()), 2f, 0);
                                                 }
                                             }
                                         }
@@ -644,25 +626,27 @@ public class MainActivity extends BaseActivity implements OperationCallback {
         });
     }
 
-    private void uploadDeviceLocation() {
+    private void uploadDeviceLocation(double longitudeData, double latitudeData) {
+        LogUtils.i("开始上传定位信息");
         DeviceLocationRecordRequest deviceLocationRecordRequest = new DeviceLocationRecordRequest();
         deviceLocationRecordRequest.setDeviceSn(DeviceUtils.getDeviceId(this));
-        deviceLocationRecordRequest.setLongitude("120.278616");
-        deviceLocationRecordRequest.setLatitude("39.022933");
-        deviceLocationRecordRequest.setAddress("东海");
-        deviceLocationRecordRequest.setSpeed(1);
-        deviceLocationRecordRequest.setDirection(45);
-        deviceLocationRecordRequest.setAltitude(50);
+        deviceLocationRecordRequest.setLongitude(String.valueOf(longitudeData));
+        deviceLocationRecordRequest.setLatitude(String.valueOf(latitudeData));
+//        deviceLocationRecordRequest.setAddress("");
+//        deviceLocationRecordRequest.setSpeed(1);
+//        deviceLocationRecordRequest.setDirection(45);
+//        deviceLocationRecordRequest.setAltitude(50);
         String json = new Gson().toJson(deviceLocationRecordRequest);
         LogUtils.json(json);
         HttpUtils.postJson(UrlUtils.getDeviceLocationAddUrl(), json, new HttpUtils.HttpCallback() {
             @Override
             public void onSuccess(String body) {
+                LogUtils.i("定位信息上传成功");
                 LogUtils.json(body);
                 Gson gson = new Gson();
                 DeviceLocationRecordResponse response = gson.fromJson(body, DeviceLocationRecordResponse.class);
                 if (response.getCode() == 200) {
-                    Toast.makeText(MainActivity.this, "位置信息上传成功！", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "位置信息上传成功！", Toast.LENGTH_LONG).show();
                 } else {
                     onError(response.getMsg());
                 }
@@ -671,6 +655,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
             @Override
             public void onError(String msg) {
                 Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+                LogUtils.i("定位信息上传失败");
             }
         });
     }
@@ -717,15 +702,12 @@ public class MainActivity extends BaseActivity implements OperationCallback {
         gpsListener = new android.location.LocationListener() {
             @Override
             public void onLocationChanged(@NonNull android.location.Location location) {
-                if (locationManager != null && gpsListener != null) {
-                    locationManager.removeUpdates(gpsListener); // 拿到一次就停
-                }
 
                 longitudeData = location.getLongitude();
                 latitudeData = location.getLatitude();
 
-                Toast.makeText(MainActivity.this, "定位成功！\n经度：" + longitudeData + "\n纬度：" + latitudeData, Toast.LENGTH_SHORT).show();
-
+                Toast.makeText(MainActivity.this, "定位成功！经度：" + longitudeData + "纬度：" + latitudeData, Toast.LENGTH_SHORT).show();
+                uploadDeviceLocation(longitudeData, latitudeData);
                 // 地图加载后只执行一次
                 //TODO
 //                if (isEarthReady) {
@@ -756,7 +738,13 @@ public class MainActivity extends BaseActivity implements OperationCallback {
         // 初始化地图配置
         BMEngine.preInit(this, "bda2ea3fb18fdd9a4a6d922389576df7");
         // 1、Context 2、自定义图标存放位置 3、是否加载地形
-        BMEngine.init(this, getFilesDir().getPath() + File.separator, false);
+//        BMEngine.init(this, getFilesDir().getPath() + File.separator, false);
+        BMEngine.init(
+                this,
+                getFilesDir().getPath() + File.separator,
+                true
+        );
+
     }
 
     private void initNotice() {
@@ -1082,39 +1070,13 @@ public class MainActivity extends BaseActivity implements OperationCallback {
         try {
             // 1. 尝试网络定位（成功率最高）
             if (netEnabled) {
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 0, gpsListener);
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 300000, 0, gpsListener);
             }
 
             // 2. GPS 定位（备用）
             if (gpsEnabled) {
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, gpsListener);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0, gpsListener);
             }
-            // 3. 尝试缓存位置作为 fallback
-            android.location.Location last = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            if (last == null) {
-                last = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            }
-            if (last != null) {
-                if (locationManager != null && gpsListener != null) {
-                    locationManager.removeUpdates(gpsListener); // 拿到一次就停
-                }
-
-                longitudeData = last.getLongitude();
-                latitudeData = last.getLatitude();
-
-                Toast.makeText(MainActivity.this, "定位成功！\n经度：" + longitudeData + "\n纬度：" + latitudeData, Toast.LENGTH_SHORT).show();
-                return;
-            }
-            // 4. 超时处理（3 秒没返回就失败）
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                try {
-                    locationManager.removeUpdates(gpsListener);
-                } catch (Exception ignored) {
-                }
-                if (longitudeData == 0 && latitudeData == 0) {
-                    Toast.makeText(this, "定位失败，请检查网络或GPS", Toast.LENGTH_SHORT).show();
-                }
-            }, 3000);
         } catch (Exception e) {
             Log.e("GPS", "GPS 启动失败: " + e.getMessage());
             Toast.makeText(this, "定位失败！", Toast.LENGTH_SHORT).show();
@@ -1196,7 +1158,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
     public void addOfflineMap() {
         String name = "澳门特别行政区_卫图";
         String icon = "";
-        String path = getFilesDir().getPath() + File.separator + "澳门特别行政区_卫图.bmpkg";
+        String path = getFilesDir().getPath() + File.separator + "测试数据.bmpkg";
         List<String> strings = new ArrayList<>();
         strings.add(path);
         BMEngine.addOfflineMap(name, icon, strings);
@@ -1588,7 +1550,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
 
     // time 跳转时间
     private void onAnimateTo(double lon, double lat, double time) {
-        onAnimateTo(lon, lat, time, 5000000);
+        onAnimateTo(lon, lat, time, OFFLINE_MAX_ALTITUDE);
     }
 
     // time 跳转时间
@@ -1602,28 +1564,39 @@ public class MainActivity extends BaseActivity implements OperationCallback {
     @Override
     public void onCreateEarthComplete() {
 //todo
-        addMapSource(TEST_MAP_SOURCE_URL3);
-        addMapSourceList();
+//        addMapSource(TEST_MAP_SOURCE_URL3);
+//        addMapSourceList();
         addOfflineMap();
 
         Log.e("Fangs", "=====");
         isEarthReady = true;
 
+//        List<Provider> providers = BMEngine.getMapProviders();
+//        if (!providers.isEmpty()) {
+//            Provider provider = providers.get(1); // 1、内置在线地图
+//            mEarthFragment.changeMapSource(provider.mapId);
+//            //在线地图
+//            if (provider.mapId.startsWith("MAPID_BM_OFFLINEMAP_BKG")) {
+//                mEarthFragment.animateToOfflineArea();
+//            }
+//            //离线地图
+//            if (provider.mapId.startsWith("MAPID_BM_OFFLINEMAP_PKG")) {
+//                mEarthFragment.animateToOfflineArea();
+//            }
+//
+//        }
+        // ✅ 强制切换离线 Provider
         List<Provider> providers = BMEngine.getMapProviders();
-        if (!providers.isEmpty()) {
-            Provider provider = providers.get(1); // 1、内置在线地图
-            mEarthFragment.changeMapSource(provider.mapId);
-            //在线地图
-            if (provider.mapId.startsWith("MAPID_BM_OFFLINEMAP_BKG")) {
-                mEarthFragment.animateToOfflineArea();
+        if (providers != null && !providers.isEmpty()) {
+            for (Provider provider : providers) {
+                Log.e("BM_PROVIDER", "id=" + provider.mapId + ", name=" + provider.mapName);
+                if (provider.mapId.startsWith("MAPID_BM_OFFLINEMAP")) {
+                    mEarthFragment.changeMapSource(provider.mapId);
+                    mEarthFragment.animateToOfflineArea();
+                    break;
+                }
             }
-            //离线地图
-            if (provider.mapId.startsWith("MAPID_BM_OFFLINEMAP_PKG")) {
-                mEarthFragment.animateToOfflineArea();
-            }
-
         }
-
         // 默认视角
         if (longitudeData == 0.0 && latitudeData == 0.0) {
             onAnimateTo(113.5, 22.2, 0.0);
@@ -1653,6 +1626,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
         //TODO
 //        longitudeData = 126.5292;
 //        latitudeData = 33.3617;
+//        onAnimateTo(113.55950512035889, 22.147997057266984, 0.0, 30000);
         onAnimateTo(126.5292, 33.3617, 0.0);
         selectedLayerType = LayerType.LOCATION;
         toAddPointInMap(longitudeData, latitudeData, R.mipmap.ic_fishing_vessel, 1f, 0);
@@ -1726,6 +1700,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
             Toast.makeText(this, "渔区绘制失败：" + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
+
     private void drawOnePolygon(JSONArray polygonArray, long layerId, String name)
             throws Exception {
 
@@ -1862,9 +1837,22 @@ public class MainActivity extends BaseActivity implements OperationCallback {
     public void callbackEarthOrientation(float v) {
     }
 
+    private static final int OFFLINE_MAX_ALTITUDE = 4000000; // 12万米，城市级
+
     @Override
-    public void callbackScreenCenterPoint(GeoPoint geoPoint, double v, long l, int i) {
+    public void callbackScreenCenterPoint(GeoPoint geoPoint, double altitude, long l, int i) {
+        LogUtils.i("当前缩放：" + altitude);
         // 缩放等级逻辑可在此实现
+        if (altitude > OFFLINE_MAX_ALTITUDE) {
+            runOnUiThread(() -> {
+                mEarthFragment.animateTo(
+                        geoPoint,
+                        OFFLINE_MAX_ALTITUDE,
+                        0,
+                        -90
+                );
+            });
+        }
     }
 
     @Override
@@ -2105,7 +2093,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
         String gg = s.substring(4, 6);
         String rr = s.substring(6, 8);
 
-        return "#" + aa + rr + gg + bb;
+        return "#" + rr + gg + bb;
     }
 
 //    public void drawKmlFishingZone(String assetFileName) {
@@ -2410,51 +2398,32 @@ public class MainActivity extends BaseActivity implements OperationCallback {
     }
 
     private void drawKmlLineToMap(List<GeoPoint> points) {
-
         long rootID = mEarthFragment.getRootLayerId();
         VectorElement layer = mEarthFragment.onCreateLayer(rootID, "禁渔区线_" + System.currentTimeMillis(), true);
-
         VectorElement vector = new VectorElement(layer.id, VectorElement.TYPE_LINE, "禁渔线");
-
         vector.outlineWidth = "5";            // 线宽
         vector.outlineColor = "#FFFF0000";    // 红色
         vector.showLabel = false;
-
         vector.geoPoints.addAll(points);
-
         mEarthFragment.drawElement(vector, true);
     }
 
     private void drawKmlPolygon(String name, List<GeoPoint> pts, String fillColor, String lineColor, float lineWith) {
-
         long root = mEarthFragment.getRootLayerId();
         VectorElement layer = mEarthFragment.onCreateLayer(root, name, true);
-
         VectorElement poly = new VectorElement(layer.id, VectorElement.TYPE_PLANE, name);
-
-        String fill = "#6600A0FF"; // 默认半透明蓝色
-        String stroke = "#FF0000"; // 红边
-
-//        if (styleUrl.contains("provisionalAreaStyle")) {
-//            fill = "#5540A0FF";  // 中韩：深蓝
-//        } else if (styleUrl.contains("waterAreaStyle")) {
-//            fill = "#5566CCFF";  // 中日：浅蓝
-//        }
-
-        poly.attribute = "strokeColor:" + stroke + ";" + "strokeWidth:6;" + "fillColor:" + fill + ";";
-
+        poly.outlineWidth = String.valueOf(lineWith);
+        poly.outlineColor = lineColor;
         poly.geoPoints.addAll(pts);
-
         // 确保闭合
         if (!pts.get(0).equals(pts.get(pts.size() - 1))) {
             poly.geoPoints.add(pts.get(0));
         }
-
         long elementId = mEarthFragment.drawElement(poly, true);
-
-        // ⭐新增：在区域中间绘制文字标签
-        GeoPoint center = computePolygonCentroid(pts);
-        drawTextLabel(name, center);
+        if (!TextUtils.isEmpty(name)) {
+            GeoPoint center = computePolygonCentroid(pts);
+            drawTextLabel(name, center);
+        }
         layerManager.addLayer(selectedLayerType, elementId);
     }
 
@@ -2470,20 +2439,15 @@ public class MainActivity extends BaseActivity implements OperationCallback {
     private void drawTextLabel(String text, GeoPoint center) {
         long rootID = mEarthFragment.getRootLayerId();
         VectorElement layer = mEarthFragment.onCreateLayer(rootID, "LABEL_" + text, true);
-
         VectorElement label = new VectorElement(layer.id, VectorElement.TYPE_POINT, text);
-
         label.showLabel = true;
         label.description = text;
         label.labelColor = "#FFFFFFFF"; // 黑色文字
         label.iconPath = "";            // 不显示图标
         label.isCustomPath = false;
-
         label.iconScale = 1.0f;
         label.iconAlign = Constants.ICON_ALIGNMENT_CENTER_CENTER;
-
         label.geoPoints.add(center);
-
         long elementId = mEarthFragment.drawElement(label, true);
         layerManager.addLayer(selectedLayerType, elementId);
     }
@@ -2531,14 +2495,8 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                 .append("能见度")
                 .append(bean.getVisibility())
                 .append("千米")
-                .append(TextUtils.isEmpty(bean.getRemark()) ? "。" : ("," + bean.getRemark()));
+                .append(TextUtils.isEmpty(bean.getRemark()) ? "。" : ("," + bean.getRemark() + "。"));
 
-        // 4. 备注（有才输出）
-        if (bean.getRemark() != null && !bean.getRemark().trim().isEmpty()) {
-            sb.append("（备注：")
-                    .append(bean.getRemark())
-                    .append("）");
-        }
 
         return sb.toString();
     }
