@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/shape_notioce_bg">
+    android:background="@drawable/shape_notioce_bg"
+    android:foreground="?attr/selectableItemBackgroundBorderless">
 
     <ImageView
         android:id="@+id/iv_notice"
@@ -23,6 +24,7 @@
         android:singleLine="true"
         android:text="[预警信息]未来0-12小时天气预警"
         android:textColor="@color/white"
+        android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@id/tv_notice_time"
         app:layout_constraintLeft_toRightOf="@id/iv_notice"
         app:layout_constraintRight_toRightOf="parent"
@@ -37,6 +39,7 @@
         android:singleLine="true"
         android:text="接收时间:2025年10月09日 10时"
         android:textColor="@color/white"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="@id/tv_notice"
         app:layout_constraintRight_toRightOf="parent"

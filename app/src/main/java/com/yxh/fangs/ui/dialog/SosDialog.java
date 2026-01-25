@@ -25,9 +25,9 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.yxh.fangs.R;
 import com.yxh.fangs.bean.SosEventResponse;
-import com.yxh.fangs.util.HttpUtils;
+import com.yxh.fangs.data.network.HttpUtils;
 import com.yxh.fangs.util.LogUtils;
-import com.yxh.fangs.util.UrlUtils;
+import com.yxh.fangs.data.network.api.UrlUtils;
 
 import java.util.concurrent.TimeUnit;
 

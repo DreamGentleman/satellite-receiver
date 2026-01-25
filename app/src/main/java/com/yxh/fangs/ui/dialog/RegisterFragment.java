@@ -24,12 +24,12 @@ import com.yxh.fangs.R;
 import com.yxh.fangs.bean.DeviceRegisterRequest;
 import com.yxh.fangs.bean.DeviceRegisterResponse;
 import com.yxh.fangs.ui.main.SplashActivity;
-import com.yxh.fangs.util.AppConstants;
+import com.yxh.fangs.config.AppConstants;
 import com.yxh.fangs.util.DeviceUtils;
-import com.yxh.fangs.util.HttpUtils;
+import com.yxh.fangs.data.network.HttpUtils;
 import com.yxh.fangs.util.LogUtils;
 import com.yxh.fangs.util.SPUtils;
-import com.yxh.fangs.util.UrlUtils;
+import com.yxh.fangs.data.network.api.UrlUtils;
 
 public class RegisterFragment extends DialogFragment {
 

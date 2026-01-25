@@ -81,6 +81,12 @@
         "category": "测试类",
         "distressName": "测试报警",
         "coreDescription": "SOS终端功能测试，非真实遇险场景"
+      },
+      {
+        "code": "T01",
+        "category": "自定义",
+        "distressName": "自定义报警",
+        "coreDescription": "自定义"
       }
     ]
   }

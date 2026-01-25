@@ -2,11 +2,8 @@ package com.yxh.fangs.util;
 
 public enum LayerType {
     FISHING_GROUND,   // 渔场
-    NO_FISHING_LINE,   // 禁渔线
-    COAST_LINE,       // 领海基线
-    CKFA,        // 中韩越野协定水域
-    CJFA,        // 中日越野协定水域
+    COAST_LINE,       // 沿岸线
+    LIGHTNING,        // 雷电
     TYPHOON,          // 台风
-    RAINSTORM,         // 暴雨天气
-    LOCATION         // 自身定位
+    RAINSTORM         // 暴雨天气
 }

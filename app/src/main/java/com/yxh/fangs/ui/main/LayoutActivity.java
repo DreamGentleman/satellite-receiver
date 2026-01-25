@@ -5,12 +5,15 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
 import com.yxh.fangs.R;
 import com.yxh.fangs.application.MyApplication;
+import com.yxh.fangs.config.AppConstants;
+import com.yxh.fangs.util.SPUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +34,10 @@ public class LayoutActivity extends BaseActivity {
      */
     private List<CheckBox> checkBoxList = new ArrayList<>();
     private String selectLayout = "";
+    private ImageView ivIncreaseFrequency;
+    private ImageView ivDecreaseFrequency;
+    private int forecastHourRange;
+    private TextView tvShow;
     ;
 
     @Override
@@ -42,7 +49,32 @@ public class LayoutActivity extends BaseActivity {
     }
 
     private void initData() {
-
+        String drawContent = getIntent().getStringExtra("drawContent");
+        if (TextUtils.isEmpty(drawContent)) {
+            cb1.setChecked(false);
+            cb2.setChecked(false);
+            cb3.setChecked(false);
+            cb4.setChecked(false);
+            cb5.setChecked(false);
+            cb6.setChecked(false);
+            cb7.setChecked(false);
+        } else {
+            boolean showFishing = drawContent.contains("渔场");
+            boolean showNoFishLine = drawContent.contains("机轮拖网渔业禁渔线");
+            boolean showCoast = drawContent.contains("领海基线");
+            boolean showCKFA = drawContent.contains("中韩渔业协定水域");
+            boolean showCJFA = drawContent.contains("中日渔业协定水域");
+            boolean showTyphoon = drawContent.contains("台风预警");
+            boolean showRain = drawContent.contains("气象信息");
+            cb1.setChecked(showFishing);
+            cb2.setChecked(showNoFishLine);
+            cb3.setChecked(showCoast);
+            cb4.setChecked(showCKFA);
+            cb5.setChecked(showCJFA);
+            cb6.setChecked(showTyphoon);
+            cb7.setChecked(showRain);
+        }
+        forecastHourRange = SPUtils.getInt(AppConstants.FORECASTHOURRANGE, 12);
     }
 
     private void initView() {
@@ -55,31 +87,10 @@ public class LayoutActivity extends BaseActivity {
         cb5 = findViewById(R.id.cb_5);
         cb6 = findViewById(R.id.cb_6);
         cb7 = findViewById(R.id.cb_7);
-        String sosContent = MyApplication.getInstance().showLayoutText;
-        if (TextUtils.isEmpty(sosContent)) {
-            cb1.setChecked(true);
-            cb2.setChecked(true);
-            cb3.setChecked(true);
-            cb4.setChecked(true);
-            cb5.setChecked(true);
-            cb6.setChecked(true);
-            cb7.setChecked(true);
-        } else {
-            boolean showFishing = sosContent.contains("渔场");
-            boolean showNoFishLine = sosContent.contains("机轮拖网渔业禁渔线");
-            boolean showCoast = sosContent.contains("领海基线");
-            boolean showCKFA = sosContent.contains("中韩渔业协定水域");
-            boolean showCJFA = sosContent.contains("中日渔业协定水域");
-            boolean showTyphoon = sosContent.contains("台风预警");
-            boolean showRain = sosContent.contains("气象信息");
-            cb1.setChecked(showFishing);
-            cb2.setChecked(showNoFishLine);
-            cb3.setChecked(showCoast);
-            cb4.setChecked(showCKFA);
-            cb5.setChecked(showCJFA);
-            cb6.setChecked(showTyphoon);
-            cb7.setChecked(showRain);
-        }
+        ivIncreaseFrequency = findViewById(R.id.iv_increase_frequency);
+        ivDecreaseFrequency = findViewById(R.id.iv_decrease_frequency);
+        tvShow = findViewById(R.id.tv_show);
+
         // 初始化并加入列表
 //        addCheckBox(R.id.cb_1);
 //        addCheckBox(R.id.cb_2);
@@ -87,7 +98,24 @@ public class LayoutActivity extends BaseActivity {
 //        addCheckBox(R.id.cb_4);
 //        addCheckBox(R.id.cb_5);
 //        addCheckBox(R.id.cb_6);
-
+        ivIncreaseFrequency.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                forecastHourRange++;
+                SPUtils.putInt(AppConstants.FORECASTHOURRANGE, forecastHourRange);
+                tvShow.setText(forecastHourRange + "小时");
+            }
+        });
+        ivDecreaseFrequency.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (forecastHourRange > 1) {
+                    forecastHourRange--;
+                    SPUtils.putInt(AppConstants.FORECASTHOURRANGE, forecastHourRange);
+                    tvShow.setText(forecastHourRange + "小时");
+                }
+            }
+        });
         tvBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

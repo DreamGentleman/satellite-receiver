@@ -3,6 +3,8 @@ package com.yxh.fangs.application;
 import android.app.Application;
 
 import com.yxh.fangs.bean.MessageResponse;
+import com.yxh.fangs.core.scheduler.MapEngineManager;
+import com.yxh.fangs.core.tts.TTSManager;
 import com.yxh.fangs.util.SPUtils;
 
 import java.util.ArrayList;
@@ -22,6 +24,10 @@ public class MyApplication extends Application {
         super.onCreate();
         SPUtils.init(this);
         instance = this;
+        MapEngineManager.init(this, true);
+        TTSManager.getInstance().init(this, () -> {
+            TTSManager.getInstance().speak("语音功能初始化成功！");
+        });
     }
 
     public List<MessageResponse.MessageItem> getData() {

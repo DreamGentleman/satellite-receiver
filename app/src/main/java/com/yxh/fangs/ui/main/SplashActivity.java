@@ -3,7 +3,6 @@ package com.yxh.fangs.ui.main;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Base64;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -15,20 +14,20 @@ import com.google.gson.Gson;
 import com.yxh.fangs.R;
 import com.yxh.fangs.bean.DeviceRegisterRequest;
 import com.yxh.fangs.bean.DeviceRegisterResponse;
+import com.yxh.fangs.config.AppConstants;
+import com.yxh.fangs.data.network.HttpUtils;
+import com.yxh.fangs.data.network.NetworkUtils;
+import com.yxh.fangs.data.network.api.UrlUtils;
 import com.yxh.fangs.ui.dialog.RegisterFragment;
-import com.yxh.fangs.util.AppConstants;
 import com.yxh.fangs.util.AppUpdateUtil;
 import com.yxh.fangs.util.DeviceUtils;
-import com.yxh.fangs.util.HttpUtils;
 import com.yxh.fangs.util.LogUtils;
-import com.yxh.fangs.util.NetworkUtils;
 import com.yxh.fangs.util.SPUtils;
-import com.yxh.fangs.util.UrlUtils;
+import com.yxh.fangs.util.SerialNumberParserV2;
 
-import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -86,28 +85,29 @@ public class SplashActivity extends BaseActivity {
     }
 
     private void localCheckLicenseValidityPeriod() {
-        String licenseValidityPeriodBase64 = SPUtils.getString(AppConstants.LICENSEVALIDITYPERIOD, "");
-        if (TextUtils.isEmpty(licenseValidityPeriodBase64)) {
+        String licenseValidityPeriodKey = SPUtils.getString(AppConstants.LICENSEVALIDITYPERIOD, "");
+        if (TextUtils.isEmpty(licenseValidityPeriodKey)) {
             showRegisterDialog();
         } else {
-            try {
-                // Base64 字符串解码成字节数组
-                byte[] decode = Base64.decode(licenseValidityPeriodBase64, Base64.DEFAULT);
-                // 如果本来是文本
-                String licenseValidityPeriod = new String(decode, StandardCharsets.UTF_8);
-                licenseValidityPeriod = licenseValidityPeriod.split("_")[0];
-                Date now = new Date();
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
-                Date licenseValidityPeriodDate = sdf.parse(licenseValidityPeriod);
-                if (now.before(licenseValidityPeriodDate)) {
-//                    Toast.makeText(this, "授权有效期至" + licenseValidityPeriod, Toast.LENGTH_LONG).show();
-                    StartSelfCheck();
-                } else {
-                    showRegisterDialog();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+            String parsedDateTime = SerialNumberParserV2.parseDateTime(licenseValidityPeriodKey, "QX1SB");
+            if (TextUtils.isEmpty(parsedDateTime) || parsedDateTime.length() != 14) {
                 showRegisterDialog();
+            } else {
+                parsedDateTime = parsedDateTime.substring(0, parsedDateTime.length() - 6);
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+                try {
+                    Date targetDate = sdf.parse(parsedDateTime);
+                    Date now = new Date();
+                    if (now.before(targetDate)) {
+                        StartSelfCheck();
+                    } else {
+                        showRegisterDialog();
+                    }
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                    showRegisterDialog();
+
+                }
             }
         }
     }
@@ -180,16 +180,6 @@ public class SplashActivity extends BaseActivity {
                 Gson gson = new Gson();
                 DeviceRegisterResponse response = gson.fromJson(body, DeviceRegisterResponse.class);
                 if (response.getCode() == 200) {
-                    try {
-                        // Base64 字符串解码成字节数组
-                        byte[] decode = Base64.decode(licenseKey, Base64.DEFAULT);
-                        // 如果本来是文本
-                        String licenseValidityPeriod = new String(decode, StandardCharsets.UTF_8);
-                        licenseValidityPeriod = licenseValidityPeriod.split("_")[0];
-//                        Toast.makeText(SplashActivity.this, "授权有效期至" + licenseValidityPeriod, Toast.LENGTH_LONG).show();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
                     SPUtils.putString(AppConstants.LICENSEVALIDITYPERIOD, licenseKey);
                     StartSelfCheck();
                 } else {

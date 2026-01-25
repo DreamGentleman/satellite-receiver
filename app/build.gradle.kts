@@ -100,6 +100,9 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.room.paging)
     implementation(libs.room.rxjava3)
+    implementation(libs.room.rxjava3)
+    implementation(libs.refresh.layout.kernel)
+    implementation(libs.refresh.header.classics)
     // Java 用 annotationProcessor
     annotationProcessor(libs.room.compiler)
 }

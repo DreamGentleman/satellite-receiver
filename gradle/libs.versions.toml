@@ -16,6 +16,7 @@ rxandroid = "3.0.2"
 okhttpBom = "4.12.0"
 gson = "2.13.2"
 room = "2.8.4"
+refreshLayout = "3.0.0-alpha"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -39,6 +40,8 @@ room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 room-paging = { module = "androidx.room:room-paging", version.ref = "room" }
 room-rxjava3 = { group = "androidx.room", name = "room-rxjava3", version.ref = "room" }
+refresh-layout-kernel = { module = "io.github.scwang90:refresh-layout-kernel", version.ref = "refreshLayout" }
+refresh-header-classics = { module = "io.github.scwang90:refresh-header-classics", version.ref = "refreshLayout" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -1,7 +1,12 @@
 package com.yxh.fangs.bean;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class Last24HoursBean {
 
@@ -42,14 +47,46 @@ public class Last24HoursBean {
     }
 
     public List<RowsBean> getRows() {
-        if (rows == null) {
+        return rows == null ? new ArrayList<>() : rows;
+    }
+
+    public List<RowsBean> getSortRow() {
+        if (rows == null || rows.isEmpty()) {
             return new ArrayList<>();
         }
-        return rows;
+
+        // 拷贝一份，避免影响外部原始数据
+        List<RowsBean> sorted = new ArrayList<>(rows);
+
+        // publishTime 示例：2025-12-15 10:44:48
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+
+        Collections.sort(sorted, new Comparator<RowsBean>() {
+            @Override
+            public int compare(RowsBean o1, RowsBean o2) {
+                long t1 = parseTimeSafe(o1 == null ? null : o1.getPublishTime(), sdf);
+                long t2 = parseTimeSafe(o2 == null ? null : o2.getPublishTime(), sdf);
+
+                // 倒序：最新在前
+                return Long.compare(t2, t1);
+            }
+        });
+
+        return sorted;
     }
 
     public void setRows(List<RowsBean> rows) {
         this.rows = rows;
+    }
+
+    private long parseTimeSafe(String timeStr, SimpleDateFormat sdf) {
+        if (timeStr == null || timeStr.trim().isEmpty()) return 0L;
+        try {
+            Date d = sdf.parse(timeStr.trim());
+            return d == null ? 0L : d.getTime();
+        } catch (Exception e) {
+            return 0L;
+        }
     }
 
     public static class RowsBean {

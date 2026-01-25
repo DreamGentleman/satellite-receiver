@@ -46,6 +46,7 @@
         android:background="#80FFFFFF"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/cb_1" />
+
     <CheckBox
         android:id="@+id/cb_2"
         android:layout_width="wrap_content"
@@ -72,6 +73,7 @@
         android:background="#80FFFFFF"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@id/cb_2" />
+
     <CheckBox
         android:id="@+id/cb_3"
         android:layout_width="wrap_content"
@@ -239,6 +241,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="5dp"
         android:layout_marginTop="25dp"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
         android:src="@mipmap/ic_increase_frequency"
         app:layout_constraintLeft_toLeftOf="@id/tv_show_title"
         app:layout_constraintTop_toBottomOf="@id/tv_show_title" />
@@ -247,6 +250,7 @@
         android:id="@+id/iv_decrease_frequency"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
         android:src="@mipmap/ic_decrease_frequency"
         app:layout_constraintBottom_toBottomOf="@id/iv_increase_frequency"
         app:layout_constraintLeft_toRightOf="@id/tv_show"
@@ -257,7 +261,7 @@
         android:id="@+id/v_divider"
         android:layout_width="2dp"
         android:layout_height="0dp"
-        android:layout_marginRight="480dp"
+        android:layout_marginRight="350dp"
         android:background="@color/black"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -279,6 +283,7 @@
         android:layout_marginBottom="50dp"
         android:background="@mipmap/ic_back_bg"
         android:drawableLeft="@mipmap/ic_back_2"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
         android:gravity="center"
         android:padding="10dp"
         android:text="返回"
@@ -295,6 +300,7 @@
         android:layout_marginBottom="150dp"
         android:background="@mipmap/ic_back_bg"
         android:drawableLeft="@mipmap/ic_sure"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
         android:gravity="center"
         android:padding="10dp"
         android:text="确定"

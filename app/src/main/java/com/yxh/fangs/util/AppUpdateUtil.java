@@ -6,6 +6,8 @@ import androidx.fragment.app.FragmentManager;
 
 import com.google.gson.Gson;
 import com.yxh.fangs.bean.UpdateBean;
+import com.yxh.fangs.data.network.HttpUtils;
+import com.yxh.fangs.data.network.api.UrlUtils;
 import com.yxh.fangs.ui.dialog.AppUpdateFragment;
 import com.yxh.fangs.ui.widget.LoadingDialog;
 

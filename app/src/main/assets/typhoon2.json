@@ -1,0 +1,71 @@
+{
+  "typhoonName": "Typhoon Mangkhut",
+  "latitude": "37.411125",
+  "longitude": "123.200513",
+  "maximumWind": 14,
+  "movingSpeed": 100,
+  "movingDirection": "Point1: lng 118.774836, lat 35.675147 -> Point2: lng 125.188223, lat 35.995785 -> Point3: lng 127.626189, lat 39.147103",
+  "windCircles": [
+    {
+      "id": "wind-circle-1767085923233-0",
+      "radius": 100,
+      "color": "#ff4d4f",
+      "description": "Gale-force Wind Radius (Level 7)",
+      "strokeWidth": 2,
+      "strokeOpacity": 0.8,
+      "fillOpacity": 0.1,
+      "pathPointIndex": 0,
+      "centerLat": 35.67514743608467,
+      "centerLng": 118.77483613273253,
+      "expectedTime": "11:00"
+    },
+    {
+      "id": "wind-circle-1767085925526-1",
+      "radius": 100,
+      "color": "#ff4d4f",
+      "description": "Gale-force Wind Radius (Level 7)",
+      "strokeWidth": 2,
+      "strokeOpacity": 0.8,
+      "fillOpacity": 0.1,
+      "pathPointIndex": 1,
+      "centerLat": 35.995785386420344,
+      "centerLng": 125.18822332036054,
+      "expectedTime": "12:00"
+    },
+    {
+      "id": "wind-circle-1767085926965-2",
+      "radius": 100,
+      "color": "#ff4d4f",
+      "description": "Gale-force Wind Radius (Level 7)",
+      "strokeWidth": 2,
+      "strokeOpacity": 0.8,
+      "fillOpacity": 0.1,
+      "pathPointIndex": 2,
+      "centerLat": 39.14710270770074,
+      "centerLng": 127.62618899784928,
+      "expectedTime": "13:00"
+    }
+  ],
+  "typhoonInfo": {
+    "mapData": {
+      "type": "polyline",
+      "coordinates": {
+        "points": [
+          {
+            "lng": 118.77483613273253,
+            "lat": 35.67514743608467
+          },
+          {
+            "lng": 125.18822332036054,
+            "lat": 35.995785386420344
+          },
+          {
+            "lng": 127.62618899784928,
+            "lat": 39.14710270770074
+          }
+        ]
+      }
+    },
+    "drawTime": "2025-12-30T09:12:39.554Z"
+  }
+}

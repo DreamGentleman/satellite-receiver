@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:text="求教信息发送中"
         android:textColor="@color/white"
-        android:textSize="12sp"
+        android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@id/v_title"
         app:layout_constraintLeft_toLeftOf="@id/v_title"
@@ -38,10 +38,10 @@
         android:layout_marginRight="20dp"
         android:text=""
         android:textColor="@color/white"
-        android:textSize="15sp"
+        android:textSize="18sp"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/v_title"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/v_title" />
 
     <TextView
         android:id="@+id/tv_password"
@@ -92,7 +92,7 @@
         android:padding="15dp"
         android:text="取消求救"
         android:textColor="@color/white"
-        android:textSize="12sp"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

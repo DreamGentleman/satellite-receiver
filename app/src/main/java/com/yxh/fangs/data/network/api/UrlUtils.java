@@ -1,0 +1,56 @@
+package com.yxh.fangs.data.network.api;
+
+public class UrlUtils {
+
+    /**
+     * 当前环境：dev = 开发，test = 测试，prod = 生产
+     */
+    private static final String ENV = "prod";
+
+    /**
+     * 根据环境切换 Base URL
+     */
+    private static String getBaseUrl() {
+        switch (ENV) {
+            case "dev":
+                return "http://118.195.156.252:8386/";
+            case "test":
+                return "http://118.195.156.252:8386/";
+            case "prod":
+            default:
+                return "http://118.195.156.252:8386/";
+        }
+    }
+
+    public static String getReceiverRegisterUrl() {
+        return getBaseUrl() + "prod-api/business/device/register";
+    }
+
+    public static String getReceiverStatusLogUrl() {
+        return getBaseUrl() + "prod-api/business/deviceStatusLog";
+    }
+
+    public static String getDeviceLocationAddUrl() {
+        return getBaseUrl() + "prod-api/business/deviceLocation";
+    }
+
+    public static String getSosEventStartUrl() {
+        return getBaseUrl() + "prod-api/business/sosEvent";
+    }
+
+    public static String getMessageReceiveUrl(String deviceSn) {
+        return getBaseUrl() + "/prod-api/business/messageStatus/listByDeviceSn?deviceSn=" + deviceSn;
+    }
+
+    public static String checkUpdate() {
+        return getBaseUrl() + "prod-api/business/appVersion/download";
+    }
+
+    public static String last24Hours(int pageNum, int pageSize) {
+        return getBaseUrl() + "prod-api/business/message/last24Hours?pageNum=" + pageNum + "&pageSize=" + pageSize;
+    }
+
+    public static String history(int pageNum, int pageSize) {
+        return getBaseUrl() + "prod-api/business/message/history?pageNum=" + pageNum + "&pageSize=" + pageSize;
+    }
+}
