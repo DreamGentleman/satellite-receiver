@@ -1,10 +1,12 @@
 package com.yxh.fangs.ui.main;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.text.TextUtils;
 import android.widget.Toast;
+
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.google.gson.Gson;
 import com.yxh.fangs.bean.DeviceLocationRecordRequest;
@@ -132,19 +134,38 @@ public class MessageDispatcher {
                         warnHandler.drawOnly(msg);
                     }
                 }
-                warnHandler.syncCurrentWarnIds(currentWarnIds);
-                weatherHandler.syncCurrentWeatherIds(currentWeatherIds);
-                typhoonHandler.syncCurrentTyphoonIds(currentTyphoonIds);
+//                warnHandler.syncCurrentWarnIds(currentWarnIds);
+//                weatherHandler.syncCurrentWeatherIds(currentWeatherIds);
+//                typhoonHandler.syncCurrentTyphoonIds(currentTyphoonIds);
+                // 同步前判断
+                if (currentWarnIds.isEmpty()) {
+                    warnHandler.clearAll();   // 新增
+                } else {
+                    warnHandler.syncCurrentWarnIds(currentWarnIds);
+                }
+
+                if (currentWeatherIds.isEmpty()) {
+                    weatherHandler.clearAll();
+                } else {
+                    weatherHandler.syncCurrentWeatherIds(currentWeatherIds);
+                }
+
+                if (currentTyphoonIds.isEmpty()) {
+                    typhoonHandler.clearAll();
+                } else {
+                    typhoonHandler.syncCurrentTyphoonIds(currentTyphoonIds);
+                }
 
                 // 逐条处理（遇到第一条新消息就 break，保持你原来的行为）
                 for (int i = 0; i < sortRow.size(); i++) {
                     Last24HoursBean.RowsBean msg = sortRow.get(i);
-                    if (msg == null) continue;
+                    //一般通知
+                    if (msg == null || "2".equals(msg.getLevel())) continue;
                     String id = msg.getId();
                     if (!TextUtils.isEmpty(id) && readIds.contains(id)) continue;
                     if (!TextUtils.isEmpty(id)) readIds.add(id);
 
-                    boolean handled = dispatchOne(msg, i == 0);
+                    boolean handled = dispatchOne(msg, msg.getLevel());
                     if (handled) break;
                 }
             }
@@ -156,10 +177,10 @@ public class MessageDispatcher {
         });
     }
 
-    private boolean dispatchOne(Last24HoursBean.RowsBean msg, boolean isTop) {
+    private boolean dispatchOne(Last24HoursBean.RowsBean msg, String level) {
         for (MessageHandler handler : handlers) {
             if (handler.canHandle(msg.getMessageType())) {
-                handler.handle(msg, isTop);
+                handler.handle(msg, level);
                 return true;
             }
         }
@@ -239,8 +260,8 @@ public class MessageDispatcher {
         Toast.makeText(ctx, text, Toast.LENGTH_SHORT).show();
     }
 
-    public void showDialog(AlertDialog dialog) {
-        dialogManager.show(dialog);
+    public void showDialog(DialogFragment dialog, FragmentManager manager, String tag) {
+        dialogManager.show(dialog, manager, tag);
     }
 
     public void release() {

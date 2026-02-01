@@ -108,6 +108,7 @@ public class Last24HoursBean {
         private String forecastPeriod;
         private String publishUnit;
         private String publishTime;
+        private String level;
         private Object forecastList;
 
         public String getId() {
@@ -164,6 +165,14 @@ public class Last24HoursBean {
 
         public void setPublishTime(String publishTime) {
             this.publishTime = publishTime;
+        }
+
+        public String getLevel() {
+            return level == null ? "" : level;
+        }
+
+        public void setLevel(String level) {
+            this.level = level;
         }
 
         public Object getForecastList() {

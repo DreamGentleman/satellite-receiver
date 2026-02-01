@@ -24,7 +24,7 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme.StartingWindowTheme"
+        android:theme="@style/Theme.WarningNotification"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".ui.main.MainActivity"
@@ -63,6 +63,7 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:exported="true"
             android:launchMode="singleTask"
+            android:theme="@style/AppTheme.StartingWindowTheme"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -101,6 +102,12 @@
             <!--            </intent-filter>-->
         </activity>
         <activity android:name="com.yxh.fangs.ui.main.LayoutActivity" />
+        <activity
+            android:name="com.yxh.fangs.ui.dialog.AlertActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:exported="false"
+            android:theme="@style/Theme.AlertTransparent"
+            android:windowSoftInputMode="adjustPan" />
 
 
         <receiver

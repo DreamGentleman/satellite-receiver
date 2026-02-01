@@ -1,15 +1,16 @@
 package com.yxh.fangs.ui.main.handler;
 
 import android.content.Context;
-import android.content.Intent;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.gson.Gson;
 import com.yxh.fangs.bean.ImageBean;
 import com.yxh.fangs.bean.ImageCache;
 import com.yxh.fangs.bean.Last24HoursBean;
 import com.yxh.fangs.bean.NoticeType;
-import com.yxh.fangs.ui.image.ImageDetailActivity;
+import com.yxh.fangs.ui.dialog.ImageDialogFragment;
 import com.yxh.fangs.ui.main.MainUiBinder;
 import com.yxh.fangs.ui.main.MessageDispatcher;
 import com.yxh.fangs.ui.main.MessageHandler;
@@ -32,22 +33,19 @@ public class ImageHandler implements MessageHandler {
     }
 
     @Override
-    public void handle(Last24HoursBean.RowsBean msg, boolean isTop) {
+    public void handle(Last24HoursBean.RowsBean msg, String level) {
         ImageBean imageBean = new Gson().fromJson(msg.getContent(), ImageBean.class);
         if (imageBean == null) {
             Toast.makeText(ctx, "图片信息异常！", Toast.LENGTH_SHORT).show();
             return;
         }
-        ImageCache.base64 = imageBean.getBase64();
-
-        Intent intent = new Intent(ctx, ImageDetailActivity.class);
-        intent.putExtra("time", msg.getPublishTime());
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        ctx.startActivity(intent);
-
-        if (isTop) {
-            ui.setScrollingText("您有一条图片消息");
-            dispatcher.speak("您有一条图片消息");
+        if ("0".equals(level)) {
+            ImageCache.base64 = imageBean.getBase64();
+            ImageDialogFragment imageDialogFragment = new ImageDialogFragment(msg.getPublishTime());
+            dispatcher.showDialog(imageDialogFragment, ((AppCompatActivity) ctx).getSupportFragmentManager(), "image");
         }
+
+        ui.setScrollingText("您有一条图片消息");
+        dispatcher.speak("您有一条图片消息");
     }
 }

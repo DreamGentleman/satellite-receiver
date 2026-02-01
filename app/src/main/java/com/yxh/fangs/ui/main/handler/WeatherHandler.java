@@ -3,6 +3,8 @@ package com.yxh.fangs.ui.main.handler;
 import android.content.Context;
 import android.text.TextUtils;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.yxh.fangs.bean.Last24HoursBean;
@@ -11,7 +13,7 @@ import com.yxh.fangs.bean.NoticeType;
 import com.yxh.fangs.bean.WeatherBean;
 import com.yxh.fangs.data.repository.WeatherRepository;
 import com.yxh.fangs.map.layer.LayerType;
-import com.yxh.fangs.ui.dialog.WeatherDialog;
+import com.yxh.fangs.ui.dialog.WeatherDialogFragment;
 import com.yxh.fangs.ui.main.MainUiBinder;
 import com.yxh.fangs.ui.main.MapController;
 import com.yxh.fangs.ui.main.MessageDispatcher;
@@ -52,7 +54,7 @@ public class WeatherHandler implements MessageHandler {
     }
 
     @Override
-    public void handle(Last24HoursBean.RowsBean msg, boolean isTop) {
+    public void handle(Last24HoursBean.RowsBean msg, String level) {
         state.setSelectedLayer(LayerType.RAINSTORM);
 
         Type t = new TypeToken<List<WeatherBean>>() {
@@ -65,13 +67,13 @@ public class WeatherHandler implements MessageHandler {
 
         String message = WeatherTextBuilder.buildForecastText(first);
 
-        WeatherDialog dialog = WeatherDialog.newInstance(ctx, message, WeatherRepository.getWeatherIcon(first.getWeatherPhenomenon()));
-        dispatcher.showDialog(dialog);
-
-        if (isTop) {
-            ui.setScrollingText(message);
-            dispatcher.speak(message);
+        if ("0".equals(level)) {
+            WeatherDialogFragment weatherDialogFragment = new WeatherDialogFragment(message, first.getWeatherPhenomenon());
+            dispatcher.showDialog(weatherDialogFragment, ((AppCompatActivity) ctx).getSupportFragmentManager(), "weather");
         }
+
+        ui.setScrollingText(message);
+        dispatcher.speak(message);
     }
 
     /**
@@ -107,6 +109,24 @@ public class WeatherHandler implements MessageHandler {
                 it.remove();
             }
         }
+    }
+
+    public void clearAll() {
+        // 1) 逐条 removeElement：保证地图引擎真的删掉
+        for (Map.Entry<String, List<Long>> e : drawnIdsByMsgId.entrySet()) {
+            List<Long> ids = e.getValue();
+            if (ids == null) continue;
+            for (Long id : ids) {
+                if (id == null) continue;
+                map.removeElement(id);
+            }
+        }
+
+        // 2) 清缓存
+        drawnIdsByMsgId.clear();
+
+        // 3) 可选：如果你希望“当前图层选择”也复位（不影响清除）
+        // state.setSelectedLayer(null);
     }
 
     /**

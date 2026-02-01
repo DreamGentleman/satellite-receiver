@@ -3,13 +3,15 @@ package com.yxh.fangs.ui.main.handler;
 import android.content.Context;
 import android.text.TextUtils;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.gson.Gson;
 import com.yxh.fangs.R;
 import com.yxh.fangs.bean.Last24HoursBean;
 import com.yxh.fangs.bean.NoticeType;
 import com.yxh.fangs.bean.WarnBean;
 import com.yxh.fangs.map.layer.LayerType;
-import com.yxh.fangs.ui.dialog.MessageDialog;
+import com.yxh.fangs.ui.dialog.MessageDialogFragment;
 import com.yxh.fangs.ui.main.MainUiBinder;
 import com.yxh.fangs.ui.main.MapController;
 import com.yxh.fangs.ui.main.MessageDispatcher;
@@ -50,7 +52,7 @@ public class WarnHandler implements MessageHandler {
     }
 
     @Override
-    public void handle(Last24HoursBean.RowsBean msg, boolean isTop) {
+    public void handle(Last24HoursBean.RowsBean msg, String level) {
         if (msg == null) return;
 
         drawOnly(msg);
@@ -59,14 +61,13 @@ public class WarnHandler implements MessageHandler {
         if (warnBean == null) return;
 
         String content = warnBean.getWarningLevel();
-
-        MessageDialog dialog = MessageDialog.newInstance(ctx, msg.getTitle(), content, msg.getPublishTime());
-        dispatcher.showDialog(dialog);
-
-        if (isTop) {
-            ui.setScrollingText(content);
-            dispatcher.speak("您有一条预警信息，" + content);
+        if ("0".equals(level)) {
+            MessageDialogFragment messageDialogFragment = new MessageDialogFragment(msg.getTitle(), content, msg.getPublishTime());
+            dispatcher.showDialog(messageDialogFragment, ((AppCompatActivity) ctx).getSupportFragmentManager(), "alert");
         }
+
+        ui.setScrollingText(content);
+        dispatcher.speak("您有一条预警信息，" + content);
     }
 
     public void drawOnly(Last24HoursBean.RowsBean msg) {
@@ -100,6 +101,25 @@ public class WarnHandler implements MessageHandler {
             }
         }
     }
+
+    public void clearAll() {
+        // 1) 逐条 removeElement：保证地图引擎真的删掉
+        for (Map.Entry<String, List<Long>> e : drawnIdsByMsgId.entrySet()) {
+            List<Long> ids = e.getValue();
+            if (ids == null) continue;
+            for (Long id : ids) {
+                if (id == null) continue;
+                map.removeElement(id);
+            }
+        }
+
+        // 2) 清缓存
+        drawnIdsByMsgId.clear();
+
+        // 3) 可选：如果你希望“当前图层选择”也复位（不影响清除）
+        // state.setSelectedLayer(null);
+    }
+
 
     /**
      * 精准删除某个 msgId 的所有图元

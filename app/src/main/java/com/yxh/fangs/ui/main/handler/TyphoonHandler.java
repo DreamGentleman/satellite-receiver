@@ -3,12 +3,15 @@ package com.yxh.fangs.ui.main.handler;
 import android.content.Context;
 import android.text.TextUtils;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.bigemap.bmcore.entity.GeoPoint;
 import com.google.gson.Gson;
 import com.yxh.fangs.bean.Last24HoursBean;
 import com.yxh.fangs.bean.NoticeType;
 import com.yxh.fangs.bean.TyphoonBean2;
 import com.yxh.fangs.map.layer.LayerType;
+import com.yxh.fangs.ui.dialog.MessageDialogFragment;
 import com.yxh.fangs.ui.main.MainUiBinder;
 import com.yxh.fangs.ui.main.MapController;
 import com.yxh.fangs.ui.main.MessageDispatcher;
@@ -50,16 +53,20 @@ public class TyphoonHandler implements MessageHandler {
     }
 
     @Override
-    public void handle(Last24HoursBean.RowsBean msg, boolean isTop) {
+    public void handle(Last24HoursBean.RowsBean msg, String level) {
         if (msg == null) return;
         state.setSelectedLayer(LayerType.TYPHOON);
 
         drawOnly(msg);
-
-        if (isTop) {
-            dispatcher.speak("您有一条台风消息");
-            ui.setScrollingText("您有一条台风消息");
+        TyphoonBean2 typhoonBean = gson.fromJson(msg.getContent(), TyphoonBean2.class);
+        if (typhoonBean == null) return;
+        if ("0".equals(level)) {
+            MessageDialogFragment messageDialogFragment = new MessageDialogFragment(msg.getTitle(), typhoonBean.getMovingDirection(), msg.getPublishTime());
+            dispatcher.showDialog(messageDialogFragment, ((AppCompatActivity) ctx).getSupportFragmentManager(), "typhoon");
         }
+
+        dispatcher.speak("您有一条台风消息");
+        ui.setScrollingText("您有一条台风消息");
     }
 
     /**
@@ -101,6 +108,24 @@ public class TyphoonHandler implements MessageHandler {
                 it.remove();
             }
         }
+    }
+
+    public void clearAll() {
+        // 1) 逐条 removeElement：保证地图引擎真的删掉
+        for (Map.Entry<String, List<Long>> e : drawnIdsByMsgId.entrySet()) {
+            List<Long> ids = e.getValue();
+            if (ids == null) continue;
+            for (Long id : ids) {
+                if (id == null) continue;
+                map.removeElement(id);
+            }
+        }
+
+        // 2) 清缓存
+        drawnIdsByMsgId.clear();
+
+        // 3) 可选：如果你希望“当前图层选择”也复位（不影响清除）
+        // state.setSelectedLayer(null);
     }
 
     /**
@@ -162,10 +187,32 @@ public class TyphoonHandler implements MessageHandler {
 
         // ===== 找当前小时的风圈 =====
         int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-        TyphoonBean2.WindCirclesBean current =
-                TyphoonTimeUtils.findNearestWindCircle(typhoonBean.getWindCircles(), hour);
+//        TyphoonBean2.WindCirclesBean current =
+//                TyphoonTimeUtils.findNearestWindCircle(typhoonBean.getWindCircles(), hour);
 
-        if (current != null) {
+//        if (current != null) {
+//            int idx = current.getPathPointIndex();
+//            if (idx < 0) idx = 0;
+//            if (idx >= track.size()) idx = track.size() - 1;
+//
+//            GeoPoint center = track.get(idx);
+//
+//            long circleId = map.drawCircle(
+//                    LayerType.TYPHOON,
+//                    center.lon,
+//                    center.lat,
+//                    current.getColor(),
+//                    current.getRadius() * 1000,
+//                    current.getDescription()
+//            );
+//            if (circleId > 0) ids.add(circleId);
+//        }
+
+        List<TyphoonBean2.WindCirclesBean> currents =
+                TyphoonTimeUtils.findNearestWindCircles(typhoonBean.getWindCircles(), hour);
+        for (TyphoonBean2.WindCirclesBean current : currents) {
+            if (current == null) continue;
+
             int idx = current.getPathPointIndex();
             if (idx < 0) idx = 0;
             if (idx >= track.size()) idx = track.size() - 1;
@@ -180,7 +227,9 @@ public class TyphoonHandler implements MessageHandler {
                     current.getRadius() * 1000,
                     current.getDescription()
             );
-            if (circleId > 0) ids.add(circleId);
+            if (circleId > 0) {
+                ids.add(circleId);
+            }
         }
 
         return ids;

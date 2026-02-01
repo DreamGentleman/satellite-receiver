@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import com.yxh.fangs.bean.TyphoonBean2;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -28,6 +29,30 @@ public class TyphoonTimeUtils {
         }
     }
 
+    public static List<TyphoonBean2.WindCirclesBean> findNearestWindCircles(List<TyphoonBean2.WindCirclesBean> circles, int hour) {
+
+        List<TyphoonBean2.WindCirclesBean> result = new ArrayList<>();
+        if (circles == null || circles.isEmpty()) return result;
+
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, hour);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        long now = cal.getTimeInMillis();
+
+        long min = 2 * 60 * 60 * 1000L; // 2 小时
+
+        for (TyphoonBean2.WindCirclesBean c : circles) {
+            long t = parseTimeToday(c.getExpectedTime());
+            long delta = Math.abs(t - now);
+            if (delta < min) {
+                result.add(c);
+            }
+        }
+        return result;
+    }
+
 
     public static TyphoonBean2.WindCirclesBean findNearestWindCircle(List<TyphoonBean2.WindCirclesBean> circles, int hour) {
         if (circles == null || circles.isEmpty()) return null;
@@ -40,7 +65,7 @@ public class TyphoonTimeUtils {
         long now = cal.getTimeInMillis();
 
         TyphoonBean2.WindCirclesBean nearest = circles.get(0);
-        long min = Long.MAX_VALUE;
+        long min = 2 * 60 * 60 * 1000L; // 2 小时
 
         for (TyphoonBean2.WindCirclesBean c : circles) {
             long t = parseTimeToday(c.getExpectedTime());

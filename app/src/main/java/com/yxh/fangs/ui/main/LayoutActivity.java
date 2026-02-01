@@ -75,6 +75,7 @@ public class LayoutActivity extends BaseActivity {
             cb7.setChecked(showRain);
         }
         forecastHourRange = SPUtils.getInt(AppConstants.FORECASTHOURRANGE, 12);
+        tvShow.setText(forecastHourRange + "小时");
     }
 
     private void initView() {

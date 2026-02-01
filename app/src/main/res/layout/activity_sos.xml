@@ -522,6 +522,7 @@
         android:text="30"
         android:textColor="@color/white"
         android:textSize="20sp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@id/tv_sos"
         app:layout_constraintLeft_toRightOf="@id/tv_sos"
         app:layout_constraintRight_toRightOf="@id/v_sos" />

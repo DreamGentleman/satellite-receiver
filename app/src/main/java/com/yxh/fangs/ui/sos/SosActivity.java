@@ -131,7 +131,7 @@ public class SosActivity extends BaseActivity {
                 submitSos();
             }
         });
-        startCountDown(TOTAL_SECONDS);
+//        startCountDown(TOTAL_SECONDS);
     }
 
     private void submitSos() {
@@ -140,6 +140,7 @@ public class SosActivity extends BaseActivity {
         sosEventRequest.setSendTime(nowTime());
         sosEventRequest.setDeviceSn(DeviceUtils.getDeviceId(this));
         SosEventRequest.VesselInfoBean vesselInfo = new SosEventRequest.VesselInfoBean();
+        //TODO 获取实际信息
         vesselInfo.setMmsiCode("qx-wgeqwrgrg444");
         vesselInfo.setVesselName("闽油66889");
         sosEventRequest.setVesselInfo(vesselInfo);
@@ -264,6 +265,7 @@ public class SosActivity extends BaseActivity {
     }
 
     public void startCountDown(long startSeconds) {
+
         // 防止重复启动
         cancelCountDown();
 
@@ -382,20 +384,20 @@ public class SosActivity extends BaseActivity {
 
     // 暂停
     public void pauseCountDown() {
-        if (!isRunning) return;
-        isRunning = false;
-        cancelCountDown(); // 停止订阅，保持 remainSeconds 不变
+//        if (!isRunning) return;
+//        isRunning = false;
+//        cancelCountDown(); // 停止订阅，保持 remainSeconds 不变
     }
 
     // 继续
     public void resumeCountDown() {
-        if (isRunning) return;
-        if (remainSeconds <= 0) {
-            // 已经结束了就直接提交
-            submitSos();
-            return;
-        }
-        startCountDown(remainSeconds);
+//        if (isRunning) return;
+//        if (remainSeconds <= 0) {
+//            // 已经结束了就直接提交
+//            submitSos();
+//            return;
+//        }
+//        startCountDown(remainSeconds);
     }
 
     private void cancelCountDown() {

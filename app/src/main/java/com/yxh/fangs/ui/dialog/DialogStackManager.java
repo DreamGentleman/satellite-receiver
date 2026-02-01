@@ -1,9 +1,11 @@
 package com.yxh.fangs.ui.dialog;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.os.Handler;
 import android.os.Looper;
+
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentManager;
 
 import java.lang.ref.WeakReference;
 
@@ -20,7 +22,7 @@ public class DialogStackManager {
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     private WeakReference<Activity> activityRef;
-    private AlertDialog currentDialog;
+    private DialogFragment currentDialog;
 
     private final Runnable autoDismissRunnable = new Runnable() {
         @Override
@@ -36,7 +38,7 @@ public class DialogStackManager {
     /**
      * 展示新弹窗：先关闭旧弹窗，再展示新弹窗，并刷新 60s 倒计时
      */
-    public void show(AlertDialog dialog) {
+    public void show(DialogFragment dialog, FragmentManager manager, String tag) {
         Activity act = activityRef.get();
         if (act == null || act.isFinishing()) return;
 
@@ -45,7 +47,7 @@ public class DialogStackManager {
             currentDialog = dialog;
 
             try {
-                dialog.show();
+                dialog.show(manager, tag);
             } catch (Exception ignored) {
             }
 
@@ -73,10 +75,11 @@ public class DialogStackManager {
 
         if (currentDialog != null) {
             try {
-                if (currentDialog.isShowing()) {
-                    currentDialog.dismiss();
+                if (currentDialog.isAdded()) {
+                    currentDialog.dismissAllowingStateLoss();
                 }
             } catch (Exception ignored) {
+                ignored.printStackTrace();
             }
             currentDialog = null;
         }

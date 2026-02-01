@@ -4,5 +4,6 @@ import com.yxh.fangs.bean.Last24HoursBean;
 
 public interface MessageHandler {
     boolean canHandle(String type);
-    void handle(Last24HoursBean.RowsBean msg, boolean isTop);
+
+    void handle(Last24HoursBean.RowsBean msg, String level);
 }
