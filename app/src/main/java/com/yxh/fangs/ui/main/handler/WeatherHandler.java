@@ -13,7 +13,7 @@ import com.yxh.fangs.bean.NoticeType;
 import com.yxh.fangs.bean.WeatherBean;
 import com.yxh.fangs.data.repository.WeatherRepository;
 import com.yxh.fangs.map.layer.LayerType;
-import com.yxh.fangs.ui.dialog.WeatherDialogFragment;
+import com.yxh.fangs.ui.dialog.RedWeatherDialogFragment;
 import com.yxh.fangs.ui.main.MainUiBinder;
 import com.yxh.fangs.ui.main.MapController;
 import com.yxh.fangs.ui.main.MessageDispatcher;
@@ -68,7 +68,7 @@ public class WeatherHandler implements MessageHandler {
         String message = WeatherTextBuilder.buildForecastText(first);
 
         if ("0".equals(level)) {
-            WeatherDialogFragment weatherDialogFragment = new WeatherDialogFragment(message, first.getWeatherPhenomenon());
+            RedWeatherDialogFragment weatherDialogFragment = new RedWeatherDialogFragment(message, first.getWeatherPhenomenon());
             dispatcher.showDialog(weatherDialogFragment, ((AppCompatActivity) ctx).getSupportFragmentManager(), "weather");
         }
 

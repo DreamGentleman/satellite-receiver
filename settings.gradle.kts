@@ -9,7 +9,7 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
-
+        maven { url = uri("https://maven.aliyun.com/nexus/content/repositories/releases/") }
     }
 }
 dependencyResolutionManagement {
@@ -18,6 +18,7 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
+        maven { url = uri("https://maven.aliyun.com/nexus/content/repositories/releases/") }
         flatDir {
             dirs("app/libs") // 注意路径要从项目根目录相对写
         }

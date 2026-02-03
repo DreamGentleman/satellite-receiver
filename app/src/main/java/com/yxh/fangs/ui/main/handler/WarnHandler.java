@@ -11,7 +11,7 @@ import com.yxh.fangs.bean.Last24HoursBean;
 import com.yxh.fangs.bean.NoticeType;
 import com.yxh.fangs.bean.WarnBean;
 import com.yxh.fangs.map.layer.LayerType;
-import com.yxh.fangs.ui.dialog.MessageDialogFragment;
+import com.yxh.fangs.ui.dialog.RedMessageDialogFragment;
 import com.yxh.fangs.ui.main.MainUiBinder;
 import com.yxh.fangs.ui.main.MapController;
 import com.yxh.fangs.ui.main.MessageDispatcher;
@@ -62,7 +62,7 @@ public class WarnHandler implements MessageHandler {
 
         String content = warnBean.getWarningLevel();
         if ("0".equals(level)) {
-            MessageDialogFragment messageDialogFragment = new MessageDialogFragment(msg.getTitle(), content, msg.getPublishTime());
+            RedMessageDialogFragment messageDialogFragment = new RedMessageDialogFragment(msg.getTitle(), content, msg.getPublishTime());
             dispatcher.showDialog(messageDialogFragment, ((AppCompatActivity) ctx).getSupportFragmentManager(), "alert");
         }
 

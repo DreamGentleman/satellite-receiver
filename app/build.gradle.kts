@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.aliyun)
 }
 
 android {
@@ -105,4 +106,5 @@ dependencies {
     implementation(libs.refresh.header.classics)
     // Java 用 annotationProcessor
     annotationProcessor(libs.room.compiler)
+    implementation(libs.aliyun)
 }

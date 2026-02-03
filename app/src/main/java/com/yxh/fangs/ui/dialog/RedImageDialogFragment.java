@@ -19,12 +19,12 @@ import androidx.fragment.app.FragmentManager;
 import com.yxh.fangs.R;
 import com.yxh.fangs.bean.ImageCache;
 
-public class ImageDialogFragment extends DialogFragment {
+public class RedImageDialogFragment extends DialogFragment {
 
     private final String publishTime;
 
 
-    public ImageDialogFragment(String publishTime) {
+    public RedImageDialogFragment(String publishTime) {
         this.publishTime = publishTime;
     }
 

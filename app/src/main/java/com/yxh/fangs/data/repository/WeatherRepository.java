@@ -10,7 +10,7 @@ public class WeatherRepository {
                 return R.mipmap.ic_fine;
             case "多云":
                 return R.mipmap.ic_cloudy;
-            case "阴天":
+            case "阴":
                 return R.mipmap.ic_cloudy_sky;
             case "雷阵雨":
                 return R.mipmap.ic_thunder_shower;

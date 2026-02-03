@@ -1,6 +1,7 @@
 [versions]
 agp = "8.13.0"
 kotlin = "2.0.21"
+aliyun_plugin = "3.0.4"
 coreKtx = "1.17.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
@@ -17,6 +18,7 @@ okhttpBom = "4.12.0"
 gson = "2.13.2"
 room = "2.8.4"
 refreshLayout = "3.0.0-alpha"
+aliyun_apm = "2.6.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -42,10 +44,12 @@ room-paging = { module = "androidx.room:room-paging", version.ref = "room" }
 room-rxjava3 = { group = "androidx.room", name = "room-rxjava3", version.ref = "room" }
 refresh-layout-kernel = { module = "io.github.scwang90:refresh-layout-kernel", version.ref = "refreshLayout" }
 refresh-header-classics = { module = "io.github.scwang90:refresh-header-classics", version.ref = "refreshLayout" }
+aliyun = { module = "com.aliyun.ams:alicloud-apm", version.ref = "aliyun_apm" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+aliyun = { id = "com.aliyun.emas.apm", version.ref = "aliyun_plugin" }
 
 
 

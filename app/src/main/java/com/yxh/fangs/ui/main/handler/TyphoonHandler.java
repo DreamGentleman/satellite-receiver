@@ -11,7 +11,7 @@ import com.yxh.fangs.bean.Last24HoursBean;
 import com.yxh.fangs.bean.NoticeType;
 import com.yxh.fangs.bean.TyphoonBean2;
 import com.yxh.fangs.map.layer.LayerType;
-import com.yxh.fangs.ui.dialog.MessageDialogFragment;
+import com.yxh.fangs.ui.dialog.RedMessageDialogFragment;
 import com.yxh.fangs.ui.main.MainUiBinder;
 import com.yxh.fangs.ui.main.MapController;
 import com.yxh.fangs.ui.main.MessageDispatcher;
@@ -61,7 +61,7 @@ public class TyphoonHandler implements MessageHandler {
         TyphoonBean2 typhoonBean = gson.fromJson(msg.getContent(), TyphoonBean2.class);
         if (typhoonBean == null) return;
         if ("0".equals(level)) {
-            MessageDialogFragment messageDialogFragment = new MessageDialogFragment(msg.getTitle(), typhoonBean.getMovingDirection(), msg.getPublishTime());
+            RedMessageDialogFragment messageDialogFragment = new RedMessageDialogFragment(msg.getTitle(), "您有一条台风" + typhoonBean.getTyphoonName() + "的预警！", msg.getPublishTime());
             dispatcher.showDialog(messageDialogFragment, ((AppCompatActivity) ctx).getSupportFragmentManager(), "typhoon");
         }
 

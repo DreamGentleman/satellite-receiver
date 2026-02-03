@@ -8,7 +8,7 @@ import com.google.gson.Gson;
 import com.yxh.fangs.bean.BeidouBean;
 import com.yxh.fangs.bean.Last24HoursBean;
 import com.yxh.fangs.bean.NoticeType;
-import com.yxh.fangs.ui.dialog.MessageDialogFragment;
+import com.yxh.fangs.ui.dialog.RedMessageDialogFragment;
 import com.yxh.fangs.ui.main.MainUiBinder;
 import com.yxh.fangs.ui.main.MessageDispatcher;
 import com.yxh.fangs.ui.main.MessageHandler;
@@ -37,7 +37,7 @@ public class BeidouHandler implements MessageHandler {
                 + "，卫星编号为：" + beidouBean.getSatelliteId()
                 + "，信号强度：" + beidouBean.getSignalStrength();
         if ("0".equals(level)) {
-            MessageDialogFragment messageDialogFragment = new MessageDialogFragment(msg.getTitle(), content, msg.getPublishTime());
+            RedMessageDialogFragment messageDialogFragment = new RedMessageDialogFragment(msg.getTitle(), content, msg.getPublishTime());
             dispatcher.showDialog(messageDialogFragment, ((AppCompatActivity) ctx).getSupportFragmentManager(), "alert");
         }
 

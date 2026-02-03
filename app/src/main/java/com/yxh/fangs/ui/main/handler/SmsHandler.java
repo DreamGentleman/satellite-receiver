@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.yxh.fangs.bean.Last24HoursBean;
 import com.yxh.fangs.bean.NoticeType;
-import com.yxh.fangs.ui.dialog.MessageDialogFragment;
+import com.yxh.fangs.ui.dialog.RedMessageDialogFragment;
 import com.yxh.fangs.ui.main.MainUiBinder;
 import com.yxh.fangs.ui.main.MessageDispatcher;
 import com.yxh.fangs.ui.main.MessageHandler;
@@ -31,7 +31,7 @@ public class SmsHandler implements MessageHandler {
     @Override
     public void handle(Last24HoursBean.RowsBean msg, String level) {
         if ("0".equals(level)) {
-            MessageDialogFragment messageDialogFragment = new MessageDialogFragment(msg.getTitle(), msg.getContent(), msg.getPublishTime());
+            RedMessageDialogFragment messageDialogFragment = new RedMessageDialogFragment(msg.getTitle(), msg.getContent(), msg.getPublishTime());
             dispatcher.showDialog(messageDialogFragment, ((AppCompatActivity) ctx).getSupportFragmentManager(), "sos");
         }
 

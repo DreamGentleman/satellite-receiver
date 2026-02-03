@@ -92,7 +92,11 @@ public class MainUiBinder {
     public void bindNoticeClickListener(NoticeClickRouter router) {
         noticeListAdapter.setOnItemClickListener(position -> {
             Last24HoursBean.RowsBean rowsBean = noticeListAdapter.getDataList().get(position);
-            router.onNoticeClicked(rowsBean);
+            try {
+                router.onNoticeClicked(rowsBean);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         });
     }
 

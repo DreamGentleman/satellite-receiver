@@ -10,7 +10,7 @@ import com.yxh.fangs.bean.ImageBean;
 import com.yxh.fangs.bean.ImageCache;
 import com.yxh.fangs.bean.Last24HoursBean;
 import com.yxh.fangs.bean.NoticeType;
-import com.yxh.fangs.ui.dialog.ImageDialogFragment;
+import com.yxh.fangs.ui.dialog.RedImageDialogFragment;
 import com.yxh.fangs.ui.main.MainUiBinder;
 import com.yxh.fangs.ui.main.MessageDispatcher;
 import com.yxh.fangs.ui.main.MessageHandler;
@@ -41,7 +41,7 @@ public class ImageHandler implements MessageHandler {
         }
         if ("0".equals(level)) {
             ImageCache.base64 = imageBean.getBase64();
-            ImageDialogFragment imageDialogFragment = new ImageDialogFragment(msg.getPublishTime());
+            RedImageDialogFragment imageDialogFragment = new RedImageDialogFragment(msg.getPublishTime());
             dispatcher.showDialog(imageDialogFragment, ((AppCompatActivity) ctx).getSupportFragmentManager(), "image");
         }
 
