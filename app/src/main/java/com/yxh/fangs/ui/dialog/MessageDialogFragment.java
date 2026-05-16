@@ -5,11 +5,11 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -50,8 +50,8 @@ public class MessageDialogFragment extends DialogFragment {
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setCanceledOnTouchOutside(false);
 
-        View view = LayoutInflater.from(getContext())
-                .inflate(R.layout.dialog_message, null, false);
+        View view = getLayoutInflater()
+                .inflate(R.layout.dialog_message, new FrameLayout(requireContext()), false);
 
         TextView tvTime = view.findViewById(R.id.tv_time);
         TextView tvMessage = view.findViewById(R.id.tv_message);

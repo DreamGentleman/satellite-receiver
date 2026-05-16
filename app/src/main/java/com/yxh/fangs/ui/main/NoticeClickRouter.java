@@ -13,11 +13,14 @@ import com.yxh.fangs.bean.ImageBean;
 import com.yxh.fangs.bean.ImageCache;
 import com.yxh.fangs.bean.Last24HoursBean;
 import com.yxh.fangs.bean.NoticeType;
-import com.yxh.fangs.bean.TyphoonBean2;
+import com.yxh.fangs.bean.TyphoonTrackBean;
 import com.yxh.fangs.bean.WarnBean;
 import com.yxh.fangs.bean.WeatherBean;
 import com.yxh.fangs.data.repository.WeatherRepository;
 import com.yxh.fangs.ui.dialog.MessageDialogFragment;
+import com.yxh.fangs.ui.dialog.RedImageDialogFragment;
+import com.yxh.fangs.ui.dialog.RedMessageDialogFragment;
+import com.yxh.fangs.ui.dialog.RedWeatherDialogFragment;
 import com.yxh.fangs.ui.dialog.WeatherDialogFragment;
 import com.yxh.fangs.ui.image.ImageDetailActivity;
 
@@ -49,9 +52,14 @@ public class NoticeClickRouter {
                         + "，信号强度：" + beidouBean.getSignalStrength();
 
                 dispatcher.speak("您有一条北斗消息，" + content);
-
-                MessageDialogFragment messageDialogFragment = MessageDialogFragment.newInstance(rowsBean.getTitle(), content, rowsBean.getPublishTime());
-                dispatcher.showDialog(messageDialogFragment, activity.getSupportFragmentManager(), "beidou");
+                String level = rowsBean.getLevel();
+                if ("0".equals(level)) {
+                    RedMessageDialogFragment messageDialogFragment = new RedMessageDialogFragment(rowsBean.getTitle(), content, rowsBean.getPublishTime());
+                    dispatcher.showDialog(messageDialogFragment, activity.getSupportFragmentManager(), "beidou");
+                } else {
+                    MessageDialogFragment messageDialogFragment = MessageDialogFragment.newInstance(rowsBean.getTitle(), content, rowsBean.getPublishTime());
+                    dispatcher.showDialog(messageDialogFragment, activity.getSupportFragmentManager(), "beidou");
+                }
                 break;
             }
 
@@ -61,10 +69,14 @@ public class NoticeClickRouter {
 
                 String content = warnBean.getWarningLevel();
                 dispatcher.speak("您有一条预警信息，" + content);
-
-                MessageDialogFragment messageDialogFragment = MessageDialogFragment.newInstance(rowsBean.getTitle(), content, rowsBean.getPublishTime());
-                dispatcher.showDialog(messageDialogFragment, activity.getSupportFragmentManager(), "alert");
-
+                String level = rowsBean.getLevel();
+                if ("0".equals(level)) {
+                    RedMessageDialogFragment messageDialogFragment = new RedMessageDialogFragment(rowsBean.getTitle(), content, rowsBean.getPublishTime());
+                    dispatcher.showDialog(messageDialogFragment, activity.getSupportFragmentManager(), "alert");
+                } else {
+                    MessageDialogFragment messageDialogFragment = MessageDialogFragment.newInstance(rowsBean.getTitle(), content, rowsBean.getPublishTime());
+                    dispatcher.showDialog(messageDialogFragment, activity.getSupportFragmentManager(), "alert");
+                }
                 break;
             }
 
@@ -80,31 +92,44 @@ public class NoticeClickRouter {
 
 //                RedImageDialogFragment imageDialogFragment = new RedImageDialogFragment(rowsBean.getPublishTime());
 //                dispatcher.showDialog(imageDialogFragment, activity.getSupportFragmentManager(), "image");
-
-                Intent intent = new Intent(activity, ImageDetailActivity.class);
-                intent.putExtra("time", rowsBean.getPublishTime());
-                activity.startActivity(intent);
+                String level = rowsBean.getLevel();
+                if ("0".equals(level)) {
+                    RedImageDialogFragment imageDialogFragment = new RedImageDialogFragment(rowsBean.getPublishTime());
+                    dispatcher.showDialog(imageDialogFragment, activity.getSupportFragmentManager(), "image");
+                } else {
+                    Intent intent = new Intent(activity, ImageDetailActivity.class);
+                    intent.putExtra("time", rowsBean.getPublishTime());
+                    activity.startActivity(intent);
+                }
                 break;
             }
 
             case NoticeType.NOTICE_SMS: {
                 dispatcher.speak("您有一条短消息，" + rowsBean.getTitle());
-
-                MessageDialogFragment messageDialogFragment = MessageDialogFragment.newInstance(rowsBean.getTitle(), rowsBean.getContent(), rowsBean.getPublishTime());
-                dispatcher.showDialog(messageDialogFragment, activity.getSupportFragmentManager(), "alert");
-
+                String level = rowsBean.getLevel();
+                if ("0".equals(level)) {
+                    RedMessageDialogFragment messageDialogFragment = new RedMessageDialogFragment(rowsBean.getTitle(), rowsBean.getContent(), rowsBean.getPublishTime());
+                    dispatcher.showDialog(messageDialogFragment, activity.getSupportFragmentManager(), "alert");
+                } else {
+                    MessageDialogFragment messageDialogFragment = MessageDialogFragment.newInstance(rowsBean.getTitle(), rowsBean.getContent(), rowsBean.getPublishTime());
+                    dispatcher.showDialog(messageDialogFragment, activity.getSupportFragmentManager(), "alert");
+                }
                 break;
             }
 
             case NoticeType.NOTICE_TYPHOON: {
-                TyphoonBean2 typhoonBean = gson.fromJson(rowsBean.getContent(), TyphoonBean2.class);
+                TyphoonTrackBean typhoonBean = gson.fromJson(rowsBean.getContent(), TyphoonTrackBean.class);
                 if (typhoonBean == null) return;
 
                 dispatcher.speak("您有一条台风" + typhoonBean.getTyphoonName() + "的消息");
-
-                MessageDialogFragment messageDialogFragment = MessageDialogFragment.newInstance(rowsBean.getTitle(), "您有一条台风" + typhoonBean.getTyphoonName() + "的预警！", rowsBean.getPublishTime());
-                dispatcher.showDialog(messageDialogFragment, activity.getSupportFragmentManager(), "alert");
-
+                String level = rowsBean.getLevel();
+                if ("0".equals(level)) {
+                    RedMessageDialogFragment messageDialogFragment = new RedMessageDialogFragment(rowsBean.getTitle(), "您有一条台风" + typhoonBean.getTyphoonName() + "的预警！", rowsBean.getPublishTime());
+                    dispatcher.showDialog(messageDialogFragment, activity.getSupportFragmentManager(), "alert");
+                } else {
+                    MessageDialogFragment messageDialogFragment = MessageDialogFragment.newInstance(rowsBean.getTitle(), "您有一条台风" + typhoonBean.getTyphoonName() + "的预警！", rowsBean.getPublishTime());
+                    dispatcher.showDialog(messageDialogFragment, activity.getSupportFragmentManager(), "alert");
+                }
                 break;
             }
 
@@ -117,9 +142,14 @@ public class NoticeClickRouter {
                     WeatherBean weatherBean = list.get(0);
                     String message = WeatherTextBuilder.buildForecastText(weatherBean);
                     dispatcher.speak(message);
-
-                    WeatherDialogFragment weatherDialogFragment = WeatherDialogFragment.newInstance(message, WeatherRepository.getWeatherIcon(weatherBean.getWeatherPhenomenon()));
-                    dispatcher.showDialog(weatherDialogFragment, activity.getSupportFragmentManager(), "weather");
+                    String level = rowsBean.getLevel();
+                    if ("0".equals(level)) {
+                        RedWeatherDialogFragment weatherDialogFragment = new RedWeatherDialogFragment(message, weatherBean.getWeatherPhenomenon());
+                        dispatcher.showDialog(weatherDialogFragment, activity.getSupportFragmentManager(), "weather");
+                    } else {
+                        WeatherDialogFragment weatherDialogFragment = WeatherDialogFragment.newInstance(message, WeatherRepository.getWeatherIcon(weatherBean.getWeatherPhenomenon()));
+                        dispatcher.showDialog(weatherDialogFragment, activity.getSupportFragmentManager(), "weather");
+                    }
                 }
                 break;
             }

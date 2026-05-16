@@ -49,7 +49,7 @@ public class RedWeatherDialogFragment extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
         Dialog dialog = new Dialog(requireContext(), R.style.FullScreenDialog);
-        dialog.setContentView(R.layout.dialog_weather2);
+        dialog.setContentView(R.layout.dialog_critical_weather_alert);
 
         dialog.setCanceledOnTouchOutside(false);
 

@@ -40,26 +40,6 @@
             <!--            </intent-filter>-->
         </activity>
         <activity
-            android:name=".ui.main.MainActivity_old2"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:exported="true"
-            android:launchMode="singleTask"
-            android:windowSoftInputMode="adjustPan">
-
-        </activity>
-        <activity
-            android:name=".ui.main.MapMainActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:exported="true"
-            android:launchMode="singleTask"
-            android:windowSoftInputMode="adjustPan">
-            <!--            <intent-filter>-->
-            <!--                <action android:name="android.intent.action.MAIN" />-->
-
-            <!--                <category android:name="android.intent.category.LAUNCHER" />-->
-            <!--            </intent-filter>-->
-        </activity>
-        <activity
             android:name="com.yxh.fangs.ui.main.SplashActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:exported="true"
@@ -103,14 +83,6 @@
             <!--            </intent-filter>-->
         </activity>
         <activity android:name="com.yxh.fangs.ui.main.LayoutActivity" />
-        <activity
-            android:name="com.yxh.fangs.ui.dialog.AlertActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:exported="false"
-            android:theme="@style/Theme.AlertTransparent"
-            android:windowSoftInputMode="adjustPan" />
-
-
         <receiver
             android:name=".receiver.BootReceiver"
             android:enabled="true"

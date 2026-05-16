@@ -18,11 +18,7 @@ import com.yxh.fangs.ui.main.MessageDispatcher;
 import com.yxh.fangs.ui.main.MessageHandler;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class WarnHandler implements MessageHandler {
@@ -34,8 +30,7 @@ public class WarnHandler implements MessageHandler {
     private final MessageDispatcher dispatcher;
     private final Gson gson = new Gson();
 
-    // msgId -> elementIds（该预警绘制出来的所有图元id）
-    private final Map<String, List<Long>> drawnIdsByMsgId = new HashMap<>();
+    private final NoticeElementStore elementStore;
 
     public WarnHandler(Context ctx, MainUiBinder ui, MapController map,
                        MessageDispatcher.DispatchState state, MessageDispatcher dispatcher) {
@@ -44,6 +39,7 @@ public class WarnHandler implements MessageHandler {
         this.map = map;
         this.state = state;
         this.dispatcher = dispatcher;
+        this.elementStore = new NoticeElementStore(map);
     }
 
     @Override
@@ -75,66 +71,23 @@ public class WarnHandler implements MessageHandler {
         String msgId = msg.getId();
         if (TextUtils.isEmpty(msgId)) return;
 
-        // 去重：已画过则跳过
-        if (drawnIdsByMsgId.containsKey(msgId)) return;
+        if (elementStore.contains(msgId)) return;
 
         List<Long> ids = drawWarnElements(msg);
-        if (ids != null && !ids.isEmpty()) {
-            drawnIdsByMsgId.put(msgId, ids);
-        }
+        elementStore.put(msgId, ids);
     }
 
-    /**
-     * 同步：本轮仍存在的预警 msgId 保留；消失的精准删除
-     */
     public void syncCurrentWarnIds(Set<String> currentWarnMsgIds) {
-        if (currentWarnMsgIds == null) currentWarnMsgIds = Collections.emptySet();
-
-        Iterator<Map.Entry<String, List<Long>>> it = drawnIdsByMsgId.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<String, List<Long>> e = it.next();
-            String oldMsgId = e.getKey();
-
-            if (!currentWarnMsgIds.contains(oldMsgId)) {
-                removeByMsgId(oldMsgId);
-                it.remove();
-            }
-        }
+        elementStore.sync(currentWarnMsgIds);
     }
 
     public void clearAll() {
-        // 1) 逐条 removeElement：保证地图引擎真的删掉
-        for (Map.Entry<String, List<Long>> e : drawnIdsByMsgId.entrySet()) {
-            List<Long> ids = e.getValue();
-            if (ids == null) continue;
-            for (Long id : ids) {
-                if (id == null) continue;
-                map.removeElement(id);
-            }
-        }
-
-        // 2) 清缓存
-        drawnIdsByMsgId.clear();
-
-        // 3) 可选：如果你希望“当前图层选择”也复位（不影响清除）
-        // state.setSelectedLayer(null);
+        elementStore.clearAll();
     }
 
 
-    /**
-     * 精准删除某个 msgId 的所有图元
-     */
     public void removeByMsgId(String msgId) {
-        if (TextUtils.isEmpty(msgId)) return;
-
-        List<Long> ids = drawnIdsByMsgId.get(msgId);
-        if (ids == null || ids.isEmpty()) return;
-
-        for (Long id : ids) {
-            if (id == null) continue;
-            map.removeElement(id);
-        }
-        drawnIdsByMsgId.remove(msgId);
+        elementStore.remove(msgId);
     }
 
     /**

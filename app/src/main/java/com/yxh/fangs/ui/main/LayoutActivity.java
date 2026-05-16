@@ -11,12 +11,8 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import com.yxh.fangs.R;
-import com.yxh.fangs.application.MyApplication;
 import com.yxh.fangs.config.AppConstants;
 import com.yxh.fangs.util.SPUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class LayoutActivity extends BaseActivity {
 
@@ -29,16 +25,10 @@ public class LayoutActivity extends BaseActivity {
     private CheckBox cb5;
     private CheckBox cb6;
     private CheckBox cb7;
-    /**
-     * 所有 CheckBox 统一管理
-     */
-    private List<CheckBox> checkBoxList = new ArrayList<>();
-    private String selectLayout = "";
     private ImageView ivIncreaseFrequency;
     private ImageView ivDecreaseFrequency;
     private int forecastHourRange;
     private TextView tvShow;
-    ;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -92,13 +82,6 @@ public class LayoutActivity extends BaseActivity {
         ivDecreaseFrequency = findViewById(R.id.iv_decrease_frequency);
         tvShow = findViewById(R.id.tv_show);
 
-        // 初始化并加入列表
-//        addCheckBox(R.id.cb_1);
-//        addCheckBox(R.id.cb_2);
-//        addCheckBox(R.id.cb_3);
-//        addCheckBox(R.id.cb_4);
-//        addCheckBox(R.id.cb_5);
-//        addCheckBox(R.id.cb_6);
         ivIncreaseFrequency.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -129,72 +112,27 @@ public class LayoutActivity extends BaseActivity {
                 Intent data = new Intent();
                 String value = handleSosSelected();
                 data.putExtra("handleSosSelected", value);
-                MyApplication.getInstance().showLayoutText = value;
                 setResult(RESULT_OK, data);
                 finish();
             }
         });
     }
 
-
-    /**
-     * 统一初始化 CheckBox
-     */
-    private void addCheckBox(int id) {
-        CheckBox checkBox = findViewById(id);
-        checkBox.setOnClickListener(this::onCheckBoxClick);
-        checkBoxList.add(checkBox);
-    }
-
-    /**
-     * 核心逻辑：
-     * 用户点击哪个，就只选中哪个，其余全部取消
-     */
-    private void onCheckBoxClick(View view) {
-        CheckBox clicked = (CheckBox) view;
-
-        // 1️⃣ 全部取消（不会触发点击事件）
-        setNotCheckAll();
-
-        // 2️⃣ 再选中当前
-        clicked.setChecked(true);
-    }
-
-    /**
-     * 取消全部选中
-     */
-    private void setNotCheckAll() {
-        for (CheckBox cb : checkBoxList) {
-            cb.setChecked(false);
-        }
-    }
-
-    /**
-     * 统一处理选中后的业务
-     */
     private String handleSosSelected() {
-        selectLayout = "";
-        if (cb1.isChecked()) {
-            selectLayout = selectLayout + "," + cb1.getText().toString();
+        StringBuilder selected = new StringBuilder();
+        appendCheckedText(selected, cb1);
+        appendCheckedText(selected, cb2);
+        appendCheckedText(selected, cb3);
+        appendCheckedText(selected, cb4);
+        appendCheckedText(selected, cb5);
+        appendCheckedText(selected, cb6);
+        appendCheckedText(selected, cb7);
+        return selected.toString();
+    }
+
+    private void appendCheckedText(StringBuilder selected, CheckBox checkBox) {
+        if (checkBox.isChecked()) {
+            selected.append(',').append(checkBox.getText());
         }
-        if (cb2.isChecked()) {
-            selectLayout = selectLayout + "," + cb2.getText().toString();
-        }
-        if (cb3.isChecked()) {
-            selectLayout = selectLayout + "," + cb3.getText().toString();
-        }
-        if (cb4.isChecked()) {
-            selectLayout = selectLayout + "," + cb4.getText().toString();
-        }
-        if (cb5.isChecked()) {
-            selectLayout = selectLayout + "," + cb5.getText().toString();
-        }
-        if (cb6.isChecked()) {
-            selectLayout = selectLayout + "," + cb6.getText().toString();
-        }
-        if (cb7.isChecked()) {
-            selectLayout = selectLayout + "," + cb7.getText().toString();
-        }
-        return selectLayout;
     }
 }

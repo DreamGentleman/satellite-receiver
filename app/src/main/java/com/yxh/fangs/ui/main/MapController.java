@@ -35,9 +35,11 @@ public class MapController {
     private final Context ctx;
     private final FragmentManager fm;
     private final int containerId;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     private EarthFragment earth;
     private boolean earthReady = false;
+    private boolean enforcingZoomLimit = false;
 
     private final LayerManager layerManager = new LayerManager();
     private LineDrawManager lineDrawManager;
@@ -57,7 +59,7 @@ public class MapController {
     public void initMapAsync(OperationCallback callback) {
         new Thread(() -> {
             copyAssetsIfNeeded();
-            new Handler(Looper.getMainLooper()).post(() -> {
+            mainHandler.post(() -> {
                 earth = EarthFragment.getInstance(callback);
                 fm.beginTransaction().add(containerId, earth, TAG_EARTH_FRAGMENT).commitAllowingStateLoss();
             });
@@ -73,7 +75,7 @@ public class MapController {
     }
 
     private void initDrawManagersDelayed() {
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+        mainHandler.postDelayed(() -> {
             lineDrawManager = new LineDrawManager(earth);
             planeDrawManager = new PlaneDrawManager(earth);
         }, 3000L);
@@ -110,6 +112,23 @@ public class MapController {
         GeoPoint geoPoint = new GeoPoint(lon, lat);
         double pitch = -90.0;
         earth.animateTo(geoPoint, height, time, pitch);
+    }
+
+    public void enforceZoomLimit(GeoPoint center, double altitude) {
+        if (!isReady() || center == null || enforcingZoomLimit) {
+            return;
+        }
+        if (altitude <= OFFLINE_MAX_ALTITUDE) {
+            return;
+        }
+
+        enforcingZoomLimit = true;
+        double lon = center.lon;
+        double lat = center.lat;
+        mainHandler.post(() -> {
+            animateTo(lon, lat, 0.0, OFFLINE_MAX_ALTITUDE);
+            enforcingZoomLimit = false;
+        });
     }
 
     // ====== provider/offline ======
@@ -191,7 +210,7 @@ public class MapController {
             return;
         }
 
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+        mainHandler.postDelayed(() -> {
             // 复用你原来的 KML解析绘制方法：建议你后续再拆 KmlRenderer
             KmlRenderer.drawKmlFishingZone(ctx, earth, layerManager, layerType, lineDrawManager, planeDrawManager, kmlAsset);
         }, 1000L);

@@ -4,11 +4,11 @@ import android.app.Dialog;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -46,8 +46,8 @@ public class WeatherDialogFragment extends DialogFragment {
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setCanceledOnTouchOutside(false);
 
-        View view = LayoutInflater.from(getContext())
-                .inflate(R.layout.dialog_weather, null, false);
+        View view = getLayoutInflater()
+                .inflate(R.layout.dialog_weather, new FrameLayout(requireContext()), false);
 
         TextView tvMessage = view.findViewById(R.id.tv_message);
         TextView tvSure = view.findViewById(R.id.tv_sure);

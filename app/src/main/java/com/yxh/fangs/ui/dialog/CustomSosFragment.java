@@ -42,7 +42,7 @@ public class CustomSosFragment extends DialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View rootView = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_custom_sos, null);
+        View rootView = inflater.inflate(R.layout.dialog_custom_sos, container, false);
         EditText etContent = rootView.findViewById(R.id.et_content);
         Button btnCancel = rootView.findViewById(R.id.btnCancel);
         Button btnOk = rootView.findViewById(R.id.btnOk);

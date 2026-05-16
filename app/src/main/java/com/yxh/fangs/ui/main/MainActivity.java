@@ -16,22 +16,20 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentManager;
 
 import com.bigemap.bmcore.entity.GeoPoint;
-import com.bigemap.bmcore.entity.VectorElement;
-import com.bigemap.bmcore.listener.OperationCallback;
 import com.yxh.fangs.R;
 import com.yxh.fangs.bean.WeatherBean;
 import com.yxh.fangs.config.AppConstants;
 import com.yxh.fangs.locaiton.LocationRepository;
 import com.yxh.fangs.map.layer.LayerType;
-import com.yxh.fangs.ui.dialog.Sos2Fragment;
+import com.yxh.fangs.ui.dialog.SosSendingFragment;
 import com.yxh.fangs.ui.history.HistoryMessageActivity;
 import com.yxh.fangs.ui.setting.SettingActivity;
 import com.yxh.fangs.ui.sos.SosActivity;
 import com.yxh.fangs.util.DeviceUtils;
 import com.yxh.fangs.util.SPUtils;
-import com.yxh.fangs.util.SerialNumberParserV2;
+import com.yxh.fangs.util.LicenseSerialParser;
 
-public class MainActivity extends BaseActivity implements OperationCallback {
+public class MainActivity extends BaseActivity {
 
     private MainUiBinder ui;
     private MapController mapController;
@@ -58,7 +56,17 @@ public class MainActivity extends BaseActivity implements OperationCallback {
         ui = new MainUiBinder(this);
 
         mapController = new MapController(this, getSupportFragmentManager(), R.id.flt_container);
-        mapController.initMapAsync(this); // OperationCallback = Main3
+        mapController.initMapAsync(new EarthReadyCallback(new EarthReadyCallback.Listener() {
+            @Override
+            public void onEarthReady() {
+                MainActivity.this.onEarthReady();
+            }
+
+            @Override
+            public void onScreenCenterChanged(GeoPoint center, double altitude) {
+                mapController.enforceZoomLimit(center, altitude);
+            }
+        }));
 
         dispatcher = new MessageDispatcher(this, ui, mapController,
                 new MessageDispatcher.DispatchState() {
@@ -146,7 +154,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
                         if (sosResult) {
                             FragmentManager fm = getSupportFragmentManager();
                             if (fm.findFragmentByTag("sos") == null) {
-                                Sos2Fragment.newInstance(sosType, sosContent).show(fm, "sos");
+                                SosSendingFragment.newInstance(sosType, sosContent).show(fm, "sos");
                             }
                         }
                     }
@@ -169,7 +177,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
         String key = SPUtils.getString(AppConstants.LICENSEVALIDITYPERIOD, "");
 
         if (!TextUtils.isEmpty(key)) {
-            String parsed = SerialNumberParserV2.parseDateTime(key, "QX1SB");
+            String parsed = LicenseSerialParser.parseDateTime(key, "QX1SB");
             if (!TextUtils.isEmpty(parsed) && parsed.length() == 14) {
                 parsed = parsed.substring(0, parsed.length() - 6);
                 licenseValidityPeriod =
@@ -229,10 +237,7 @@ public class MainActivity extends BaseActivity implements OperationCallback {
         dispatcher.release();
     }
 
-    // ========= OperationCallback: 地图加载完成 =========
-
-    @Override
-    public void onCreateEarthComplete() {
+    private void onEarthReady() {
         mapController.onEarthReady();
 
         // 默认视角
@@ -244,102 +249,5 @@ public class MainActivity extends BaseActivity implements OperationCallback {
         // 默认显示船只位置
         dispatcher.setSelectedLayer(LayerType.LOCATION);
         mapController.drawPoint(LayerType.LOCATION, longitudeData, latitudeData, R.mipmap.ic_fishing_vessel, 1f, 0);
-    }
-
-    @Override
-    public void onCreateEarthFail(int i) {
-    }
-
-    @Override
-    public void onScroll() {
-    }
-
-    @Override
-    public void callbackEarthOrientation(float v) {
-    }
-
-    @Override
-    public void callbackScreenCenterPoint(GeoPoint center, double altitude, long l, int i) {
-    }
-
-    @Override
-    public void onSingleTapConfirmed(android.view.MotionEvent motionEvent, GeoPoint geoPoint) {
-    }
-
-    @Override
-    public void onLongPress(android.view.MotionEvent motionEvent, GeoPoint geoPoint) {
-    }
-
-    @Override
-    public void onCallbackSiWeiHistoryData(String[] strings) {
-    }
-
-    @Override
-    public void onCallbackDrawElementStepEditing(VectorElement vectorElement) {
-
-    }
-
-    @Override
-    public void onCallbackDrawElementStepCreated(VectorElement vectorElement) {
-
-    }
-
-    @Override
-    public void onClickedElement(com.bigemap.bmcore.entity.VectorElement vectorElement) {
-    }
-
-    @Override
-    public void onLongClickedElement(com.bigemap.bmcore.entity.VectorElement vectorElement) {
-    }
-
-    @Override
-    public void onChangeMapSourceComplete(com.bigemap.bmcore.entity.MapConfig mapConfig) {
-    }
-
-    @Override
-    public void onChangeMapTypeGroupComplete(com.bigemap.bmcore.entity.MapConfig mapConfig) {
-    }
-
-    @Override
-    public void onCallbackHistoricalImagery(int[] ints) {
-    }
-
-    @Override
-    public void onCallbackHistoricalImagery(String[] strings) {
-    }
-
-    @Override
-    public void onCallbackAddedTrackPoint(GeoPoint geoPoint) {
-    }
-
-    @Override
-    public void onLoadVectorFileStart(int i) {
-    }
-
-    @Override
-    public void onLoadVectorFileDoing() {
-    }
-
-    @Override
-    public void onLoadVectorFileComplete(boolean b, long l) {
-    }
-
-    @Override
-    public void onLoadVectorFileComplete(com.bigemap.bmcore.entity.VectorElement vectorElement) {
-    }
-
-    @Override
-    public byte[] onFormatStringToPicture(String s) {
-        return new byte[0];
-    }
-
-    @Override
-    public byte[] webPToPng(byte[] bytes) {
-        return new byte[0];
-    }
-
-    @Override
-    public boolean onUpdateOfflineCallback(int i, int i1) {
-        return false;
     }
 }

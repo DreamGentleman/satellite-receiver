@@ -4,22 +4,59 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    tools:background="#185266">
+    android:background="@drawable/bg_frequency_item_selector"
+    android:clickable="true"
+    android:focusable="true"
+    tools:background="@color/panel_bg">
 
     <TextView
-        android:id="@+id/tv_frequency"
-        android:layout_width="wrap_content"
+        android:id="@+id/tv_channel"
+        android:layout_width="64dp"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="14dp"
         android:layout_marginTop="12dp"
         android:ellipsize="end"
         android:maxLines="1"
         android:singleLine="true"
-        android:text="信道1：10.0000MHz"
-        android:textColor="@color/white"
+        android:gravity="left|center_vertical"
+        android:text="信道01"
+        android:textColor="@color/text_primary"
         android:textSize="18sp"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_frequency"
+        android:layout_width="90dp"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:gravity="left|center_vertical"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:text="4.2075MHz"
+        android:textColor="@color/text_primary"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@id/tv_channel"
+        app:layout_constraintLeft_toRightOf="@id/tv_channel"
+        app:layout_constraintTop_toTopOf="@id/tv_channel" />
+
+    <TextView
+        android:id="@+id/tv_offset"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="10dp"
+        android:ellipsize="end"
+        android:gravity="left|center_vertical"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:text="频偏 +180Hz"
+        android:textColor="@color/text_secondary"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@id/tv_channel"
+        app:layout_constraintLeft_toRightOf="@id/tv_frequency"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tv_channel" />
 
     <View
         android:layout_width="0dp"
@@ -27,9 +64,9 @@
         android:layout_marginLeft="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginRight="12dp"
-        android:background="#80FFFFFF"
+        android:background="@color/line_subtle"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_frequency" />
+        app:layout_constraintTop_toBottomOf="@id/tv_channel" />
 </androidx.constraintlayout.widget.ConstraintLayout>

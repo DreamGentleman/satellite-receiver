@@ -3,6 +3,7 @@ package com.yxh.fangs.ui.main;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -11,23 +12,32 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentManager;
 
 import com.google.gson.Gson;
+import com.iflytek.aikit.core.AiHelper;
+import com.iflytek.aikit.core.BaseLibrary;
+import com.iflytek.aikit.core.CoreListener;
+import com.iflytek.aikit.core.ErrType;
+import com.iflytek.aikit.core.LogLvl;
 import com.yxh.fangs.R;
 import com.yxh.fangs.bean.DeviceRegisterRequest;
 import com.yxh.fangs.bean.DeviceRegisterResponse;
 import com.yxh.fangs.config.AppConstants;
+import com.yxh.fangs.core.tts.TTSManager;
 import com.yxh.fangs.data.network.HttpUtils;
 import com.yxh.fangs.data.network.NetworkUtils;
 import com.yxh.fangs.data.network.api.UrlUtils;
 import com.yxh.fangs.ui.dialog.RegisterFragment;
 import com.yxh.fangs.util.AppUpdateUtil;
+import com.yxh.fangs.util.AssetCopyUtil;
 import com.yxh.fangs.util.DeviceUtils;
 import com.yxh.fangs.util.LogUtils;
 import com.yxh.fangs.util.SPUtils;
-import com.yxh.fangs.util.SerialNumberParserV2;
+import com.yxh.fangs.util.LicenseSerialParser;
 
+import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -44,7 +54,43 @@ public class SplashActivity extends BaseActivity {
     private TextView tvSdr;
     private TextView tvFrequency;
     private Disposable disposable;
+    private String APPID;
+    private String APIKEY;
+    private String APISECRET;
+    private String WORK_DIR;
+    private int authResult = -1;
+    private boolean ttsInitialized = false;
 
+    //授权结果回调
+    private CoreListener coreListener = new CoreListener() {
+        @Override
+        public void onAuthStateChange(final ErrType type, final int code) {
+            Log.i("科大讯飞", "core listener code:" + code);
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    switch (type) {
+                        case AUTH:
+                            authResult = code;
+                            if (code == 0) {
+                                initTtsAfterAIKitReady();
+                            } else {
+                                Log.e("科大讯飞", "SDK授权失败，授权码为:" + authResult);
+                            }
+                            break;
+                        case HTTP:
+                            Toast.makeText(SplashActivity.this, "SDK状态：HTTP认证结果" + code,
+                                    Toast.LENGTH_SHORT).show();
+                            break;
+                        default:
+                            Toast.makeText(SplashActivity.this, "SDK状态：其他错误" + code,
+                                    Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+    };
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +99,7 @@ public class SplashActivity extends BaseActivity {
         tvUsb = findViewById(R.id.tv_usb);
         tvSdr = findViewById(R.id.tv_sdr);
         tvFrequency = findViewById(R.id.tv_frequency);
+        initAIKit();
         boolean online = NetworkUtils.isOnline(this);
         if (online) {
             AppUpdateUtil.getInstance(this, new AppUpdateUtil.CallBack() {
@@ -84,17 +131,60 @@ public class SplashActivity extends BaseActivity {
         }
     }
 
+    private void initAIKit() {
+        APPID = getResources().getString(R.string.appId);
+        APIKEY = getResources().getString(R.string.apiKey);
+        APISECRET = getResources().getString(R.string.apiSecret);
+        WORK_DIR = getCacheDir() + getResources().getString(R.string.workDir);
+        File workDir = new File(WORK_DIR);
+        if (!workDir.exists()) {
+            workDir.mkdirs();
+        }
+        AssetCopyUtil.copyAssetsFolder(this, "xtts", workDir.getAbsolutePath() + "/xtts");
+
+        AiHelper.getInst().setLogInfo(LogLvl.VERBOSE, 1, WORK_DIR + "/aeeLog.txt");
+        //设定初始化参数
+        BaseLibrary.Params params = BaseLibrary.Params.builder()
+                .appId(APPID)  //您的应用ID，可从控制台查看
+                .apiKey(APIKEY) //您的APIKEY，可从控制台查看
+                .apiSecret(APISECRET) //您的APISECRET，可从控制台查看
+                .workDir(WORK_DIR) //SDK的工作目录，需要确保有读写权限。一般用于存放离线能力资源，日志存放目录等使用。
+                .build();
+        //初始化SDK
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                AiHelper.getInst().initEntry(SplashActivity.this.getApplicationContext(), params);
+            }
+        }).start();
+        AiHelper.getInst().registerListener(coreListener);// 注册SDK 初始化状态监听
+    }
+
+    private void initTtsAfterAIKitReady() {
+        if (ttsInitialized) {
+            return;
+        }
+        ttsInitialized = true;
+        TTSManager.getInstance().setEngine(TTSManager.Engine.IFLYTEK_XTTS);
+        TTSManager.getInstance().init(this, () -> {
+            TTSManager.getInstance().speakWith(
+                    TTSManager.Engine.IFLYTEK_XTTS,
+                    "语音功能初始化成功！"
+            );
+        });
+    }
+
     private void localCheckLicenseValidityPeriod() {
         String licenseValidityPeriodKey = SPUtils.getString(AppConstants.LICENSEVALIDITYPERIOD, "");
         if (TextUtils.isEmpty(licenseValidityPeriodKey)) {
             showRegisterDialog();
         } else {
-            String parsedDateTime = SerialNumberParserV2.parseDateTime(licenseValidityPeriodKey, "QX1SB");
+            String parsedDateTime = LicenseSerialParser.parseDateTime(licenseValidityPeriodKey, "QX1SB");
             if (TextUtils.isEmpty(parsedDateTime) || parsedDateTime.length() != 14) {
                 showRegisterDialog();
             } else {
                 parsedDateTime = parsedDateTime.substring(0, parsedDateTime.length() - 6);
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd", Locale.ROOT);
                 try {
                     Date targetDate = sdf.parse(parsedDateTime);
                     Date now = new Date();

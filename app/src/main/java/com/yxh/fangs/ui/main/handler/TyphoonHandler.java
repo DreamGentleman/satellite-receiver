@@ -9,7 +9,7 @@ import com.bigemap.bmcore.entity.GeoPoint;
 import com.google.gson.Gson;
 import com.yxh.fangs.bean.Last24HoursBean;
 import com.yxh.fangs.bean.NoticeType;
-import com.yxh.fangs.bean.TyphoonBean2;
+import com.yxh.fangs.bean.TyphoonTrackBean;
 import com.yxh.fangs.map.layer.LayerType;
 import com.yxh.fangs.ui.dialog.RedMessageDialogFragment;
 import com.yxh.fangs.ui.main.MainUiBinder;
@@ -19,11 +19,7 @@ import com.yxh.fangs.ui.main.MessageHandler;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class TyphoonHandler implements MessageHandler {
@@ -34,9 +30,8 @@ public class TyphoonHandler implements MessageHandler {
     private final MessageDispatcher.DispatchState state;
     private final MessageDispatcher dispatcher;
     private final Gson gson = new Gson();
-    private long lastTyphoonCircleId = -1;
     private int drawHour = -1;
-    private final Map<String, List<Long>> drawnIdsByMsgId = new HashMap<>();
+    private final NoticeElementStore elementStore;
 
     public TyphoonHandler(Context ctx, MainUiBinder ui, MapController map,
                           MessageDispatcher.DispatchState state, MessageDispatcher dispatcher) {
@@ -45,6 +40,7 @@ public class TyphoonHandler implements MessageHandler {
         this.map = map;
         this.state = state;
         this.dispatcher = dispatcher;
+        this.elementStore = new NoticeElementStore(map);
     }
 
     @Override
@@ -58,7 +54,7 @@ public class TyphoonHandler implements MessageHandler {
         state.setSelectedLayer(LayerType.TYPHOON);
 
         drawOnly(msg);
-        TyphoonBean2 typhoonBean = gson.fromJson(msg.getContent(), TyphoonBean2.class);
+        TyphoonTrackBean typhoonBean = gson.fromJson(msg.getContent(), TyphoonTrackBean.class);
         if (typhoonBean == null) return;
         if ("0".equals(level)) {
             RedMessageDialogFragment messageDialogFragment = new RedMessageDialogFragment(msg.getTitle(), "您有一条台风" + typhoonBean.getTyphoonName() + "的预警！", msg.getPublishTime());
@@ -79,8 +75,7 @@ public class TyphoonHandler implements MessageHandler {
 
         if (TextUtils.isEmpty(msgId)) return;
         int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-        // 去重：已画过则跳过
-        if (drawnIdsByMsgId.containsKey(msgId)) {
+        if (elementStore.contains(msgId)) {
             if (hour == drawHour) {
                 return;
             }
@@ -88,61 +83,19 @@ public class TyphoonHandler implements MessageHandler {
         }
         List<Long> ids = drawTyphoonElements(msg);
         drawHour = hour;
-        if (ids != null && !ids.isEmpty()) {
-            drawnIdsByMsgId.put(msgId, ids);
-        }
+        elementStore.put(msgId, ids);
     }
 
-    /**
-     * 同步：本轮仍存在的台风 msgId 保留；消失的精准删除
-     */
     public void syncCurrentTyphoonIds(Set<String> currentTyphoonMsgIds) {
-        if (currentTyphoonMsgIds == null) currentTyphoonMsgIds = Collections.emptySet();
-
-        Iterator<Map.Entry<String, List<Long>>> it = drawnIdsByMsgId.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<String, List<Long>> e = it.next();
-            String oldMsgId = e.getKey();
-            if (!currentTyphoonMsgIds.contains(oldMsgId)) {
-                removeByMsgId(oldMsgId);
-                it.remove();
-            }
-        }
+        elementStore.sync(currentTyphoonMsgIds);
     }
 
     public void clearAll() {
-        // 1) 逐条 removeElement：保证地图引擎真的删掉
-        for (Map.Entry<String, List<Long>> e : drawnIdsByMsgId.entrySet()) {
-            List<Long> ids = e.getValue();
-            if (ids == null) continue;
-            for (Long id : ids) {
-                if (id == null) continue;
-                map.removeElement(id);
-            }
-        }
-
-        // 2) 清缓存
-        drawnIdsByMsgId.clear();
-
-        // 3) 可选：如果你希望“当前图层选择”也复位（不影响清除）
-        // state.setSelectedLayer(null);
+        elementStore.clearAll();
     }
 
-    /**
-     * 精准删除某个 msgId 的所有图元
-     */
     public void removeByMsgId(String msgId) {
-        if (TextUtils.isEmpty(msgId)) return;
-
-        List<Long> ids = drawnIdsByMsgId.get(msgId);
-        if (ids == null || ids.isEmpty()) return;
-
-        for (Long id : ids) {
-            if (id == null) continue;
-            map.removeElement(id); // 关键：按 elementId 删除
-        }
-
-        drawnIdsByMsgId.remove(msgId);
+        elementStore.remove(msgId);
     }
 
     /**
@@ -159,19 +112,19 @@ public class TyphoonHandler implements MessageHandler {
     private List<Long> drawTyphoonElements(Last24HoursBean.RowsBean msg) {
         state.setSelectedLayer(LayerType.TYPHOON);
 
-        TyphoonBean2 typhoonBean = gson.fromJson(msg.getContent(), TyphoonBean2.class);
+        TyphoonTrackBean typhoonBean = gson.fromJson(msg.getContent(), TyphoonTrackBean.class);
         if (typhoonBean == null || typhoonBean.getTyphoonInfo() == null) return null;
 
         List<Long> ids = new ArrayList<>();
 
         // ===== 轨迹点 =====
         List<com.bigemap.bmcore.entity.GeoPoint> track = new ArrayList<>();
-        List<TyphoonBean2.TyphoonInfoBean.MapDataBean.CoordinatesBean.PointsBean> pts =
+        List<TyphoonTrackBean.TyphoonInfoBean.MapDataBean.CoordinatesBean.PointsBean> pts =
                 typhoonBean.getTyphoonInfo().getMapData().getCoordinates().getPoints();
 
         if (pts == null || pts.isEmpty()) return null;
 
-        for (TyphoonBean2.TyphoonInfoBean.MapDataBean.CoordinatesBean.PointsBean p : pts) {
+        for (TyphoonTrackBean.TyphoonInfoBean.MapDataBean.CoordinatesBean.PointsBean p : pts) {
             track.add(new com.bigemap.bmcore.entity.GeoPoint(p.getLng(), p.getLat()));
         }
 
@@ -187,7 +140,7 @@ public class TyphoonHandler implements MessageHandler {
 
         // ===== 找当前小时的风圈 =====
         int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-//        TyphoonBean2.WindCirclesBean current =
+//        TyphoonTrackBean.WindCirclesBean current =
 //                TyphoonTimeUtils.findNearestWindCircle(typhoonBean.getWindCircles(), hour);
 
 //        if (current != null) {
@@ -208,9 +161,9 @@ public class TyphoonHandler implements MessageHandler {
 //            if (circleId > 0) ids.add(circleId);
 //        }
 
-        List<TyphoonBean2.WindCirclesBean> currents =
+        List<TyphoonTrackBean.WindCirclesBean> currents =
                 TyphoonTimeUtils.findNearestWindCircles(typhoonBean.getWindCircles(), hour);
-        for (TyphoonBean2.WindCirclesBean current : currents) {
+        for (TyphoonTrackBean.WindCirclesBean current : currents) {
             if (current == null) continue;
 
             int idx = current.getPathPointIndex();

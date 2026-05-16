@@ -36,6 +36,7 @@ import java.util.Set;
 
 public class MessageDispatcher {
 
+    private static final String LEVEL_NORMAL = "2";
     private final WeatherHandler weatherHandler;
     private final TyphoonHandler typhoonHandler;
     private final SmsHandler smsHandler;
@@ -95,6 +96,9 @@ public class MessageDispatcher {
 
     public void setTurnOnNotice(boolean on) {
         this.turnOnNotice = on;
+        if (!on) {
+            TTSManager.getInstance().stop();
+        }
     }
 
     public void setSelectedLayer(LayerType type) {
@@ -115,59 +119,9 @@ public class MessageDispatcher {
                 List<Last24HoursBean.RowsBean> sortRow = bean.getSortRow();
                 ui.updateNoticeList(sortRow);
 
-                Set<String> currentWeatherIds = new HashSet<>();
-                Set<String> currentTyphoonIds = new HashSet<>();
-                Set<String> currentWarnIds = new HashSet<>();
-                for (Last24HoursBean.RowsBean msg : sortRow) {
-                    if (msg == null) continue;
-                    if (NoticeType.NOTICE_WEATHER.equals(msg.getMessageType())) {
-                        String id = msg.getId();
-                        if (!TextUtils.isEmpty(id)) currentWeatherIds.add(id);
-                        weatherHandler.drawOnly(msg);
-                    } else if (NoticeType.NOTICE_TYPHOON.equals(msg.getMessageType())) {
-                        String id = msg.getId();
-                        if (!TextUtils.isEmpty(id)) currentTyphoonIds.add(id);
-                        typhoonHandler.drawOnly(msg);
-                    } else if (NoticeType.NOTICE_ALERT.equals(msg.getMessageType())) {
-                        String id = msg.getId();
-                        if (!TextUtils.isEmpty(id)) currentWarnIds.add(id);
-                        warnHandler.drawOnly(msg);
-                    }
-                }
-//                warnHandler.syncCurrentWarnIds(currentWarnIds);
-//                weatherHandler.syncCurrentWeatherIds(currentWeatherIds);
-//                typhoonHandler.syncCurrentTyphoonIds(currentTyphoonIds);
-                // 同步前判断
-                if (currentWarnIds.isEmpty()) {
-                    warnHandler.clearAll();   // 新增
-                } else {
-                    warnHandler.syncCurrentWarnIds(currentWarnIds);
-                }
-
-                if (currentWeatherIds.isEmpty()) {
-                    weatherHandler.clearAll();
-                } else {
-                    weatherHandler.syncCurrentWeatherIds(currentWeatherIds);
-                }
-
-                if (currentTyphoonIds.isEmpty()) {
-                    typhoonHandler.clearAll();
-                } else {
-                    typhoonHandler.syncCurrentTyphoonIds(currentTyphoonIds);
-                }
-
-                // 逐条处理（遇到第一条新消息就 break，保持你原来的行为）
-                for (int i = 0; i < sortRow.size(); i++) {
-                    Last24HoursBean.RowsBean msg = sortRow.get(i);
-                    //一般通知
-                    if (msg == null || "2".equals(msg.getLevel())) continue;
-                    String id = msg.getId();
-                    if (!TextUtils.isEmpty(id) && readIds.contains(id)) continue;
-                    if (!TextUtils.isEmpty(id)) readIds.add(id);
-
-                    boolean handled = dispatchOne(msg, msg.getLevel());
-                    if (handled) break;
-                }
+                CurrentNoticeIds currentIds = drawMapNotices(sortRow);
+                syncDrawnNotices(currentIds);
+                dispatchFirstUnreadImportantNotice(sortRow);
             }
 
             @Override
@@ -175,6 +129,79 @@ public class MessageDispatcher {
                 ui.finishRefreshIfNeeded();
             }
         });
+    }
+
+    private CurrentNoticeIds drawMapNotices(List<Last24HoursBean.RowsBean> messages) {
+        CurrentNoticeIds ids = new CurrentNoticeIds();
+        if (messages == null || messages.isEmpty()) {
+            return ids;
+        }
+
+        for (Last24HoursBean.RowsBean msg : messages) {
+            if (msg == null) continue;
+
+            String type = msg.getMessageType();
+            String id = msg.getId();
+
+            if (NoticeType.NOTICE_WEATHER.equals(type)) {
+                ids.addWeather(id);
+                weatherHandler.drawOnly(msg);
+            } else if (NoticeType.NOTICE_TYPHOON.equals(type)) {
+                ids.addTyphoon(id);
+                typhoonHandler.drawOnly(msg);
+            } else if (NoticeType.NOTICE_ALERT.equals(type)) {
+                ids.addWarn(id);
+                warnHandler.drawOnly(msg);
+            }
+        }
+        return ids;
+    }
+
+    private void syncDrawnNotices(CurrentNoticeIds currentIds) {
+        if (currentIds.warnIds.isEmpty()) {
+            warnHandler.clearAll();
+        } else {
+            warnHandler.syncCurrentWarnIds(currentIds.warnIds);
+        }
+
+        if (currentIds.weatherIds.isEmpty()) {
+            weatherHandler.clearAll();
+        } else {
+            weatherHandler.syncCurrentWeatherIds(currentIds.weatherIds);
+        }
+
+        if (currentIds.typhoonIds.isEmpty()) {
+            typhoonHandler.clearAll();
+        } else {
+            typhoonHandler.syncCurrentTyphoonIds(currentIds.typhoonIds);
+        }
+    }
+
+    private void dispatchFirstUnreadImportantNotice(List<Last24HoursBean.RowsBean> messages) {
+        if (messages == null || messages.isEmpty()) {
+            return;
+        }
+
+        for (Last24HoursBean.RowsBean msg : messages) {
+            if (!shouldDispatch(msg)) continue;
+            markRead(msg.getId());
+            if (dispatchOne(msg, msg.getLevel())) break;
+        }
+    }
+
+    private boolean shouldDispatch(Last24HoursBean.RowsBean msg) {
+        if (msg == null || LEVEL_NORMAL.equals(msg.getLevel())) {
+            return false;
+        }
+
+        String id = msg.getId();
+        return TextUtils.isEmpty(id) || !readIds.contains(id);
+    }
+
+    private void markRead(String id) {
+        if (!TextUtils.isEmpty(id)) {
+            readIds.add(id);
+        }
     }
 
     private boolean dispatchOne(Last24HoursBean.RowsBean msg, String level) {
@@ -266,5 +293,29 @@ public class MessageDispatcher {
 
     public void release() {
         dialogManager.release();
+    }
+
+    private static final class CurrentNoticeIds {
+        private final Set<String> weatherIds = new HashSet<>();
+        private final Set<String> typhoonIds = new HashSet<>();
+        private final Set<String> warnIds = new HashSet<>();
+
+        private void addWeather(String id) {
+            addIfNotEmpty(weatherIds, id);
+        }
+
+        private void addTyphoon(String id) {
+            addIfNotEmpty(typhoonIds, id);
+        }
+
+        private void addWarn(String id) {
+            addIfNotEmpty(warnIds, id);
+        }
+
+        private static void addIfNotEmpty(Set<String> target, String id) {
+            if (!TextUtils.isEmpty(id)) {
+                target.add(id);
+            }
+        }
     }
 }

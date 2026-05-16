@@ -2,5 +2,17 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="red">#00FF00</color>
+    <color name="screen_bg">#062F3E</color>
+    <color name="panel_bg">#123F52</color>
+    <color name="panel_bg_alt">#0B3446</color>
+    <color name="panel_overlay">#DD0A3B50</color>
+    <color name="panel_overlay_dark">#E6062A3A</color>
+    <color name="surface_card">#254F60</color>
+    <color name="surface_card_pressed">#2D6478</color>
+    <color name="line_subtle">#33FFFFFF</color>
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#B8CED6</color>
+    <color name="text_muted">#86A7B3</color>
+    <color name="accent_gold">#F8E36F</color>
+    <color name="accent_cyan">#63D3E8</color>
 </resources>

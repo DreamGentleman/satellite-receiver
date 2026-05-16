@@ -9,13 +9,13 @@ android {
         getByName("debug") {
             keyAlias = "fangs123"
             keyPassword = "fangs123"
-            storeFile = file("/fangs.jks")
+            storeFile = file("fangs.jks")
             storePassword = "fangs123"
         }
         create("release") {
             keyAlias = "fangs123"
             keyPassword = "fangs123"
-            storeFile = file("/fangs.jks")
+            storeFile = file("fangs.jks")
             storePassword = "fangs123"
         }
     }
@@ -41,7 +41,6 @@ android {
             )
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
-            isZipAlignEnabled = true
             isShrinkResources = false
             isDebuggable = false
         }
@@ -52,7 +51,6 @@ android {
                 "proguard-rules.pro"
             )
             isMinifyEnabled = false
-            isZipAlignEnabled = false
             isShrinkResources = false
             isDebuggable = true   // ← 必须开启调试
         }
@@ -70,10 +68,9 @@ android {
         viewBinding = true //使用viewbinding
     }
 
-    //在这里添加：
-    lintOptions {
-        isCheckReleaseBuilds = false
-        isAbortOnError = false
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
     }
 }
 
@@ -89,6 +86,7 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     implementation(mapOf("name" to "lib-bmcore-release", "ext" to "aar"))
+    implementation(mapOf("name" to "AIKit", "ext" to "aar"))
     implementation(libs.play.services.location)
     debugImplementation(libs.spiderman.debug)
     releaseImplementation(libs.spiderman.release)
@@ -100,7 +98,6 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.room.runtime)
     implementation(libs.room.paging)
-    implementation(libs.room.rxjava3)
     implementation(libs.room.rxjava3)
     implementation(libs.refresh.layout.kernel)
     implementation(libs.refresh.header.classics)

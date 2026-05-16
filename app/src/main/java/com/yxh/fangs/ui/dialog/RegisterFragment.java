@@ -2,6 +2,8 @@ package com.yxh.fangs.ui.dialog;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -51,7 +53,7 @@ public class RegisterFragment extends DialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View rootView = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_register, null);
+        View rootView = inflater.inflate(R.layout.dialog_register, container, false);
         EditText etContent = rootView.findViewById(R.id.et_content);
         Button btnCancel = rootView.findViewById(R.id.btnCancel);
         Button btnOk = rootView.findViewById(R.id.btnOk);
@@ -117,11 +119,12 @@ public class RegisterFragment extends DialogFragment {
                 );
 
                 Window window = dialog.getWindow();
+                window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
                 WindowManager.LayoutParams params = window.getAttributes();
 
                 int screenWidth = getScreenWidth(getContext());
-                params.width = screenWidth / 2;              // ⭐ 二分之一
+                params.width = Math.min(screenWidth / 2, dpToPx(520));
                 params.height = WindowManager.LayoutParams.WRAP_CONTENT;
 
                 window.setAttributes(params);
@@ -181,5 +184,9 @@ public class RegisterFragment extends DialogFragment {
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         wm.getDefaultDisplay().getMetrics(dm);
         return dm.widthPixels;
+    }
+
+    private int dpToPx(int dp) {
+        return (int) (dp * getResources().getDisplayMetrics().density + 0.5f);
     }
 }

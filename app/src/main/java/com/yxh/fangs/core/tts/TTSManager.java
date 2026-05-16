@@ -1,102 +1,106 @@
 package com.yxh.fangs.core.tts;
 
 import android.content.Context;
-import android.speech.tts.TextToSpeech;
 import android.util.Log;
 
-import java.util.LinkedList;
-import java.util.Locale;
-import java.util.Queue;
+import java.util.EnumMap;
+import java.util.Map;
 
-public class TTSManager implements TextToSpeech.OnInitListener {
+public class TTSManager {
 
+    public enum Engine {
+        IFLYTEK_XTTS,
+        ANDROID_SYSTEM
+    }
+
+    private static final String TAG = "TTSManager";
     private static final TTSManager INSTANCE = new TTSManager();
 
-    private TextToSpeech tts = null;
-    private boolean ready = false;
-    private Runnable onReady = null;
-    private final Queue<String> queue = new LinkedList<>();
+    private final Map<Engine, SpeechSynthesizer> synthesizers = new EnumMap<>(Engine.class);
+    private Engine currentEngine = Engine.IFLYTEK_XTTS;
+    private Context appContext;
+    private Runnable onReady;
 
     public static TTSManager getInstance() {
         return INSTANCE;
     }
 
     private TTSManager() {
+        synthesizers.put(Engine.IFLYTEK_XTTS, new IflytekXttsSynthesizer());
+        synthesizers.put(Engine.ANDROID_SYSTEM, new AndroidTtsSynthesizer());
     }
 
-    /**
-     * 初始化 TTS
-     *
-     * @param context         上下文
-     * @param onReadyCallback 初始化完成后的回调
-     */
     public void init(Context context, Runnable onReadyCallback) {
+        this.appContext = context.getApplicationContext();
         this.onReady = onReadyCallback;
 
-        if (tts == null) {
-            tts = new TextToSpeech(context.getApplicationContext(), this);
-        } else if (ready) {
-            if (onReadyCallback != null) onReadyCallback.run();
+        getSynthesizer(currentEngine).init(appContext, onReadyCallback);
+    }
+
+    public void setEngine(Engine engine) {
+        if (engine == null || engine == currentEngine) {
+            return;
+        }
+
+        getSynthesizer(currentEngine).stop();
+        currentEngine = engine;
+
+        if (appContext != null) {
+            getSynthesizer(currentEngine).init(appContext, onReady);
         }
     }
 
-    @Override
-    public void onInit(int status) {
-        if (status == TextToSpeech.SUCCESS) {
-            int result = tts.setLanguage(Locale.CHINESE);
-
-            if (result == TextToSpeech.LANG_MISSING_DATA ||
-                    result == TextToSpeech.LANG_NOT_SUPPORTED) {
-
-                Log.e("TTSManager", "不支持中文语言");
-                ready = false;
-                return;
-            }
-
-            ready = true;
-            Log.i("TTSManager", "TTS 初始化成功");
-
-            if (onReady != null) onReady.run();
-            if (!queue.isEmpty()) speakNext();
-
-        } else {
-            Log.e("TTSManager", "TTS 初始化失败 status=" + status);
-        }
+    public Engine getCurrentEngine() {
+        return currentEngine;
     }
 
     /**
-     * 播报文字
+     * 默认播报：优先使用当前引擎。当前默认是科大讯飞 XTTS，失败时自动回退系统 TTS。
      */
     public void speak(String text) {
-        if (text == null || text.trim().isEmpty()) return;
+        if (text == null || text.trim().isEmpty()) {
+            return;
+        }
 
-        queue.add(text);
-
-        if (ready && !tts.isSpeaking()) {
-            speakNext();
+        SpeechSynthesizer synthesizer = getSynthesizer(currentEngine);
+        boolean success = synthesizer.speak(text);
+        if (!success && currentEngine != Engine.ANDROID_SYSTEM) {
+            Log.w(TAG, "当前语音引擎播报失败，回退 Android 系统 TTS");
+            speakWith(Engine.ANDROID_SYSTEM, text);
         }
     }
 
     /**
-     * 播放队列中下一条
+     * 指定语音引擎播报，后续工具类可以用这个方法按场景切换。
      */
-    private void speakNext() {
-        String next = queue.poll();
-        if (next == null) return;
+    public void speakWith(Engine engine, String text) {
+        if (engine == null || text == null || text.trim().isEmpty()) {
+            return;
+        }
 
-        tts.speak(next, TextToSpeech.QUEUE_FLUSH, null, String.valueOf(System.currentTimeMillis()));
+        SpeechSynthesizer synthesizer = getSynthesizer(engine);
+        if (appContext != null && !synthesizer.isReady()) {
+            synthesizer.init(appContext, null);
+        }
+        synthesizer.speak(text);
     }
 
-    /**
-     * 释放资源
-     */
+    public void stop() {
+        for (SpeechSynthesizer synthesizer : synthesizers.values()) {
+            synthesizer.stop();
+        }
+    }
+
     public void release() {
-        if (tts != null) {
-            tts.stop();
-            tts.shutdown();
+        for (SpeechSynthesizer synthesizer : synthesizers.values()) {
+            synthesizer.release();
         }
-        ready = false;
-        tts = null;
-        Log.i("TTSManager", "TTS 已释放");
+        appContext = null;
+        onReady = null;
+        Log.i(TAG, "TTS 已释放");
+    }
+
+    private SpeechSynthesizer getSynthesizer(Engine engine) {
+        return synthesizers.get(engine);
     }
 }

@@ -1,5 +1,11 @@
 <resources>
     <string name="app_name">海事短波通信接收机</string>
     <string name="sos_sending_tip">您的“%s”求救信息，持续发送中！\n关闭该窗口需取消本次求救！</string>
-
+    <string name="appId">d958cf18</string>
+    <string name="apiKey">dc058cd2f08b828cdd37ff98dfaf4b46</string>
+    <string name="apiSecret">ZmFjYjBmZWVlODJhY2RlNTA0NDUzMGY2</string>
+    <string name="workDir">/iflytek/</string>
+    <string name="aliyun_app_key">335661311</string>
+    <string name="aliyun_app_secret">f2d1f5b7a53641189c5e1f4e60fe9301</string>
+    <string name="aliyun_app_rsa_secret">MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCBrAcssqQFaYBQzg5rBxK6kZ1OyyLKBr0w0dvGXFLWuhOwOBrc+C71k8/qLW2mFJcjiqf1AMgZ6bHOhMWd2iJy0OFO5RuDZ28+X6ZYxToxaz6Vm44WPuEB+IiDBNcLTy7wSJiajqJf5s4ckOQSjMbSVI4padB90gtGTlIplOETgQIDAQAB</string>
 </resources>

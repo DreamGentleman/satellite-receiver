@@ -22,18 +22,19 @@ public class LayerManager {
     }
 
     public void addLayer(LayerType type, List<Long> layerId) {
-        if (type == null) return;
+        if (type == null || layerId == null || layerId.isEmpty()) return;
         layerMap.get(type).addAll(layerId);
     }
 
     // 获取某类图层
     public List<Long> getLayers(LayerType type) {
-        if (type == null) new ArrayList<>();
+        if (type == null) return new ArrayList<>();
         return layerMap.get(type);
     }
 
     // 清空某类图层
     public void clear(LayerType type) {
+        if (type == null) return;
         layerMap.get(type).clear();
     }
 

@@ -2,7 +2,7 @@ package com.yxh.fangs.ui.main.handler;
 
 import android.text.TextUtils;
 
-import com.yxh.fangs.bean.TyphoonBean2;
+import com.yxh.fangs.bean.TyphoonTrackBean;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -29,9 +29,9 @@ public class TyphoonTimeUtils {
         }
     }
 
-    public static List<TyphoonBean2.WindCirclesBean> findNearestWindCircles(List<TyphoonBean2.WindCirclesBean> circles, int hour) {
+    public static List<TyphoonTrackBean.WindCirclesBean> findNearestWindCircles(List<TyphoonTrackBean.WindCirclesBean> circles, int hour) {
 
-        List<TyphoonBean2.WindCirclesBean> result = new ArrayList<>();
+        List<TyphoonTrackBean.WindCirclesBean> result = new ArrayList<>();
         if (circles == null || circles.isEmpty()) return result;
 
         Calendar cal = Calendar.getInstance();
@@ -43,7 +43,7 @@ public class TyphoonTimeUtils {
 
         long min = 2 * 60 * 60 * 1000L; // 2 小时
 
-        for (TyphoonBean2.WindCirclesBean c : circles) {
+        for (TyphoonTrackBean.WindCirclesBean c : circles) {
             long t = parseTimeToday(c.getExpectedTime());
             long delta = Math.abs(t - now);
             if (delta < min) {
@@ -54,7 +54,7 @@ public class TyphoonTimeUtils {
     }
 
 
-    public static TyphoonBean2.WindCirclesBean findNearestWindCircle(List<TyphoonBean2.WindCirclesBean> circles, int hour) {
+    public static TyphoonTrackBean.WindCirclesBean findNearestWindCircle(List<TyphoonTrackBean.WindCirclesBean> circles, int hour) {
         if (circles == null || circles.isEmpty()) return null;
 
         Calendar cal = Calendar.getInstance();
@@ -64,10 +64,10 @@ public class TyphoonTimeUtils {
         cal.set(Calendar.MILLISECOND, 0);
         long now = cal.getTimeInMillis();
 
-        TyphoonBean2.WindCirclesBean nearest = circles.get(0);
+        TyphoonTrackBean.WindCirclesBean nearest = circles.get(0);
         long min = 2 * 60 * 60 * 1000L; // 2 小时
 
-        for (TyphoonBean2.WindCirclesBean c : circles) {
+        for (TyphoonTrackBean.WindCirclesBean c : circles) {
             long t = parseTimeToday(c.getExpectedTime());
             long delta = Math.abs(t - now);
             if (delta < min) {
