@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.widget.Toast;
 
@@ -17,6 +19,7 @@ import androidx.fragment.app.FragmentManager;
 
 import com.bigemap.bmcore.entity.GeoPoint;
 import com.yxh.fangs.R;
+import com.yxh.fangs.application.AppRuntimeState;
 import com.yxh.fangs.bean.WeatherBean;
 import com.yxh.fangs.config.AppConstants;
 import com.yxh.fangs.locaiton.LocationRepository;
@@ -24,6 +27,7 @@ import com.yxh.fangs.map.layer.LayerType;
 import com.yxh.fangs.ui.dialog.SosSendingFragment;
 import com.yxh.fangs.ui.history.HistoryMessageActivity;
 import com.yxh.fangs.ui.setting.SettingActivity;
+import com.yxh.fangs.ui.speech.SpeechDictationActivity;
 import com.yxh.fangs.ui.sos.SosActivity;
 import com.yxh.fangs.util.DeviceUtils;
 import com.yxh.fangs.util.SPUtils;
@@ -31,10 +35,14 @@ import com.yxh.fangs.util.LicenseSerialParser;
 
 public class MainActivity extends BaseActivity {
 
+    private static final long LAYER_LOADING_RENDER_DELAY_MS = 80L;
+    private static final long LAYER_LOADING_DISMISS_DELAY_MS = 300L;
+
     private MainUiBinder ui;
     private MapController mapController;
     private MessageDispatcher dispatcher;
     private MessagePollingManager pollingManager;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     private LocationRepository locationRepository;
 
@@ -51,6 +59,7 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        AppRuntimeState.markEnteredMain();
         setContentView(R.layout.activity_main);
 
         ui = new MainUiBinder(this);
@@ -123,6 +132,7 @@ public class MainActivity extends BaseActivity {
         ui.bindCommonClicks(
                 () -> startActivity(new Intent(MainActivity.this, HistoryMessageActivity.class)),
                 () -> startActivity(new Intent(MainActivity.this, SettingActivity.class)),
+                () -> startActivity(new Intent(MainActivity.this, SpeechDictationActivity.class)),
                 () -> {
                     if (selectedWeatherBean == null) {
                         Toast.makeText(this, "暂无最新天气信息！", Toast.LENGTH_SHORT).show();
@@ -166,10 +176,20 @@ public class MainActivity extends BaseActivity {
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                         drawContent = result.getData().getStringExtra("handleSosSelected");
-                        dispatcher.applyDrawContent(drawContent);
+                        applyDrawContentWithLoading(drawContent);
                     }
                 }
         );
+    }
+
+    private void applyDrawContentWithLoading(String nextDrawContent) {
+        showLoading(getString(R.string.loading_layers));
+        mainHandler.postDelayed(() -> {
+            dispatcher.applyDrawContentSmooth(
+                    nextDrawContent,
+                    () -> mainHandler.postDelayed(this::hideLoading, LAYER_LOADING_DISMISS_DELAY_MS)
+            );
+        }, LAYER_LOADING_RENDER_DELAY_MS);
     }
 
     private void initLicenseValidityPeriod() {
@@ -209,6 +229,7 @@ public class MainActivity extends BaseActivity {
             public void onLocationChanged(Location location) {
                 longitudeData = location.getLongitude();
                 latitudeData = location.getLatitude();
+                mapController.updateLocationPoint(longitudeData, latitudeData, R.mipmap.ic_fishing_vessel, 1f, 0);
                 dispatcher.uploadDeviceLocation(DeviceUtils.getDeviceId(MainActivity.this), longitudeData, latitudeData);
             }
 
@@ -230,6 +251,8 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
+        mainHandler.removeCallbacksAndMessages(null);
+        hideLoading();
         super.onDestroy();
         if (locationRepository != null) locationRepository.stop();
         pollingManager.stop();
@@ -246,8 +269,9 @@ public class MainActivity extends BaseActivity {
         // 先应用图层选项
         dispatcher.applyDrawContent(drawContent);
 
-        // 默认显示船只位置
         dispatcher.setSelectedLayer(LayerType.LOCATION);
-        mapController.drawPoint(LayerType.LOCATION, longitudeData, latitudeData, R.mipmap.ic_fishing_vessel, 1f, 0);
+        if (longitudeData != 0.0 || latitudeData != 0.0) {
+            mapController.updateLocationPoint(longitudeData, latitudeData, R.mipmap.ic_fishing_vessel, 1f, 0);
+        }
     }
 }

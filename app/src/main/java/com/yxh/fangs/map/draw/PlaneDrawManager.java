@@ -24,8 +24,8 @@ public class PlaneDrawManager {
         long root = earth.getRootLayerId();
         VectorElement layer = earth.onCreateLayer(root, name, true);
         VectorElement poly = new VectorElement(layer.id, VectorElement.TYPE_PLANE, name);
-        poly.outlineWidth = String.valueOf(lineWith);
-        poly.outlineColor = lineColor;
+        poly.outlineWidth = String.valueOf(lineWith > 0 ? lineWith : 2f);
+        poly.outlineColor = TextUtils.isEmpty(lineColor) ? "#FFFFFFFF" : lineColor;
         poly.geoPoints.addAll(pts);
         // 确保闭合
         if (!pts.get(0).equals(pts.get(pts.size() - 1))) {
@@ -34,7 +34,10 @@ public class PlaneDrawManager {
         elementIds.add(earth.drawElement(poly, true));
         if (!TextUtils.isEmpty(name)) {
             GeoPoint center = LocationUtils.computePolygonCentroid(pts);
-            elementIds.add(textDrawManager.draw(name, "#FFFFFFFF", center));
+            long labelId = textDrawManager.draw(name, "#FFFFFFFF", center);
+            if (labelId > 0) {
+                elementIds.add(labelId);
+            }
         }
         return elementIds;
     }

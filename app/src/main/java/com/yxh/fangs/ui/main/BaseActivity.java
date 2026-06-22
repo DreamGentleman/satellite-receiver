@@ -66,14 +66,21 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     public void showLoading() {
+        showLoading(null);
+    }
+
+    public void showLoading(String message) {
         if (loadingDialog == null) {
             loadingDialog = new LoadingDialog(this);
         }
+        loadingDialog.setMessage(message);
         loadingDialog.show();
     }
 
     public void hideLoading() {
-        loadingDialog.dismiss();
+        if (loadingDialog != null) {
+            loadingDialog.dismiss();
+        }
     }
 
     @Override

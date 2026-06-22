@@ -158,6 +158,23 @@
             app:layout_constraintRight_toRightOf="@id/iv_sos"
             app:layout_constraintTop_toBottomOf="@id/iv_sos" />
 
+        <TextView
+            android:id="@+id/tv_speech_dictation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:drawableTop="@drawable/ic_radio_dictation"
+            android:drawablePadding="5dp"
+            android:gravity="center"
+            android:text="无线电"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintLeft_toLeftOf="@id/iv_location"
+            app:layout_constraintRight_toRightOf="@id/iv_location"
+            app:layout_constraintTop_toBottomOf="@id/iv_location" />
+
         <View
             android:id="@+id/v_divider_right"
             android:layout_width="0dp"

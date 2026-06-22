@@ -259,6 +259,55 @@ public class MessageDispatcher {
         if (showRain) map.showLayer(LayerType.RAINSTORM);
     }
 
+    public void applyDrawContentSmooth(String drawContent, Runnable onComplete) {
+        if (TextUtils.isEmpty(drawContent)) {
+            map.hideAllBaseLayers();
+            map.hideLayer(LayerType.TYPHOON);
+            map.hideLayer(LayerType.RAINSTORM);
+            notifyComplete(onComplete);
+            return;
+        }
+
+        boolean showFishing = drawContent.contains("渔场");
+        boolean showNoFishLine = drawContent.contains("机轮拖网渔业禁渔线");
+        boolean showCoast = drawContent.contains("领海基线");
+        boolean showCKFA = drawContent.contains("中韩渔业协定水域");
+        boolean showCJFA = drawContent.contains("中日渔业协定水域");
+        boolean showTyphoon = drawContent.contains("台风预警");
+        boolean showRain = drawContent.contains("气象信息");
+
+        map.hideAllBaseLayers();
+        map.hideLayer(LayerType.TYPHOON);
+        map.hideLayer(LayerType.RAINSTORM);
+
+        List<LayerType> baseLayers = new ArrayList<>();
+        if (showFishing) baseLayers.add(LayerType.FISHING_GROUND);
+        if (showNoFishLine) baseLayers.add(LayerType.NO_FISHING_LINE);
+        if (showCoast) baseLayers.add(LayerType.COAST_LINE);
+        if (showCKFA) baseLayers.add(LayerType.CKFA);
+        if (showCJFA) baseLayers.add(LayerType.CJFA);
+
+        drawBaseLayersSmooth(baseLayers, 0, () -> {
+            if (showTyphoon) map.showLayer(LayerType.TYPHOON);
+            if (showRain) map.showLayer(LayerType.RAINSTORM);
+            notifyComplete(onComplete);
+        });
+    }
+
+    private void drawBaseLayersSmooth(List<LayerType> layers, int index, Runnable onComplete) {
+        if (index >= layers.size()) {
+            notifyComplete(onComplete);
+            return;
+        }
+        map.drawBaseLineSmooth(layers.get(index), () -> drawBaseLayersSmooth(layers, index + 1, onComplete));
+    }
+
+    private void notifyComplete(Runnable onComplete) {
+        if (onComplete != null) {
+            onComplete.run();
+        }
+    }
+
     // ===== 上传定位（你原来的逻辑） =====
     public void uploadDeviceLocation(String deviceSn, double lon, double lat) {
         DeviceLocationRecordRequest req = new DeviceLocationRecordRequest();

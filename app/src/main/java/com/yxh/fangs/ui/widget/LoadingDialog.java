@@ -2,11 +2,13 @@ package com.yxh.fangs.ui.widget;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.yxh.fangs.R;
 
@@ -14,12 +16,24 @@ public class LoadingDialog {
 
     private Dialog dialog;
     private ImageView ivLoading;
+    private TextView tvLoadingText;
 
     public LoadingDialog(Context context) {
         dialog = new Dialog(context, R.style.LoadingDialogStyle);
         dialog.setContentView(R.layout.loading_dialog);
         dialog.setCancelable(false);
         ivLoading = dialog.findViewById(R.id.iv_loading);
+        tvLoadingText = dialog.findViewById(R.id.tv_loading_text);
+        setMessage(context.getString(R.string.loading_default));
+    }
+
+    public void setMessage(String message) {
+        if (tvLoadingText == null) {
+            return;
+        }
+        tvLoadingText.setText(TextUtils.isEmpty(message)
+                ? dialog.getContext().getString(R.string.loading_default)
+                : message);
     }
 
     public void show() {

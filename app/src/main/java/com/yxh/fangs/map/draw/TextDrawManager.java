@@ -13,6 +13,7 @@ public class TextDrawManager {
     }
 
     public long draw(String text, String color, GeoPoint center) {
+        if (center == null) return -1;
         long rootID = earth.getRootLayerId();
         VectorElement layer = earth.onCreateLayer(rootID, "LABEL_" + text, true);
         VectorElement label = new VectorElement(layer.id, VectorElement.TYPE_POINT, text);

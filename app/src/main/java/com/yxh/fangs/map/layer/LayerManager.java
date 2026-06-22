@@ -17,7 +17,7 @@ public class LayerManager {
 
     // 添加图层id
     public void addLayer(LayerType type, long layerId) {
-        if (type == null) return;
+        if (type == null || layerId <= 0) return;
         layerMap.get(type).add(layerId);
     }
 
@@ -36,6 +36,13 @@ public class LayerManager {
     public void clear(LayerType type) {
         if (type == null) return;
         layerMap.get(type).clear();
+    }
+
+    public void removeLayer(long layerId) {
+        if (layerId <= 0) return;
+        for (List<Long> ids : layerMap.values()) {
+            ids.remove(layerId);
+        }
     }
 
     // 获取全部图层

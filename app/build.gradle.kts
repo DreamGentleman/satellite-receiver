@@ -68,6 +68,12 @@ android {
         viewBinding = true //使用viewbinding
     }
 
+    sourceSets {
+        getByName("main") {
+            jniLibs.srcDirs("libs")
+        }
+    }
+
     lint {
         checkReleaseBuilds = false
         abortOnError = false
@@ -87,6 +93,7 @@ dependencies {
 
     implementation(mapOf("name" to "lib-bmcore-release", "ext" to "aar"))
     implementation(mapOf("name" to "AIKit", "ext" to "aar"))
+    implementation(files("libs/Msc.jar"))
     implementation(libs.play.services.location)
     debugImplementation(libs.spiderman.debug)
     releaseImplementation(libs.spiderman.release)

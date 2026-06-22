@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.os.Handler;
 import android.os.Looper;
+import android.widget.Toast;
 
 import androidx.fragment.app.FragmentManager;
 
@@ -28,7 +29,12 @@ import com.yxh.fangs.util.Utils;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MapController {
 
@@ -36,6 +42,7 @@ public class MapController {
     private final FragmentManager fm;
     private final int containerId;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final ExecutorService kmlExecutor = Executors.newSingleThreadExecutor();
 
     private EarthFragment earth;
     private boolean earthReady = false;
@@ -46,9 +53,14 @@ public class MapController {
     private PlaneDrawManager planeDrawManager;
 
     private final List<Long> tempLayerIds = new ArrayList<>();
+    private final Map<Integer, byte[]> iconBytesCache = new HashMap<>();
+    private final EnumSet<LayerType> loadingBaseLayers = EnumSet.noneOf(LayerType.class);
+    private long locationElementId = -1L;
 
     private static final String TAG_EARTH_FRAGMENT = "TAG_EARTH_FRAGMENT";
     private static final int OFFLINE_MAX_ALTITUDE = 4000000;
+    private static final int KML_DRAW_BATCH_SIZE = 12;
+    private static final long KML_DRAW_BATCH_DELAY_MS = 10L;
 
     public MapController(Context ctx, FragmentManager fm, int containerId) {
         this.ctx = ctx;
@@ -71,14 +83,12 @@ public class MapController {
         addOfflineMap();
         switchToOfflineProvider();
 
-        initDrawManagersDelayed();
+        initDrawManagers();
     }
 
-    private void initDrawManagersDelayed() {
-        mainHandler.postDelayed(() -> {
-            lineDrawManager = new LineDrawManager(earth);
-            planeDrawManager = new PlaneDrawManager(earth);
-        }, 3000L);
+    private void initDrawManagers() {
+        lineDrawManager = new LineDrawManager(earth);
+        planeDrawManager = new PlaneDrawManager(earth);
     }
 
     private void copyAssetsIfNeeded() {
@@ -96,7 +106,8 @@ public class MapController {
     }
 
     public void release() {
-        // 释放点位/清理等
+        kmlExecutor.shutdownNow();
+        mainHandler.removeCallbacksAndMessages(null);
     }
 
     public boolean isReady() {
@@ -157,6 +168,7 @@ public class MapController {
     // ====== layer show/hide ======
 
     public void hideLayer(LayerType type) {
+        if (!isReady()) return;
         List<Long> ids = layerManager.getLayers(type);
         if (ids == null || ids.isEmpty()) return;
         for (Long id : ids) {
@@ -165,6 +177,7 @@ public class MapController {
     }
 
     public void showLayer(LayerType type) {
+        if (!isReady()) return;
         List<Long> ids = layerManager.getLayers(type);
         if (ids == null || ids.isEmpty()) return;
         for (Long id : ids) {
@@ -203,6 +216,50 @@ public class MapController {
         }
     }
 
+    public void drawBaseLineSmooth(LayerType type, Runnable onComplete) {
+        if (!isReady()) {
+            notifyComplete(onComplete);
+            return;
+        }
+
+        String asset = getKmlAsset(type);
+        if (asset == null) {
+            notifyComplete(onComplete);
+            return;
+        }
+
+        List<Long> exist = layerManager.getLayers(type);
+        if (exist != null && !exist.isEmpty()) {
+            showLayer(type);
+            notifyComplete(onComplete);
+            return;
+        }
+
+        if (loadingBaseLayers.contains(type)) {
+            mainHandler.postDelayed(() -> drawBaseLineSmooth(type, onComplete), 120L);
+            return;
+        }
+
+        loadingBaseLayers.add(type);
+        if (lineDrawManager == null || planeDrawManager == null) {
+            initDrawManagers();
+        }
+
+        kmlExecutor.execute(() -> {
+            try {
+                List<KmlRenderer.KmlFeature> features = KmlRenderer.parseKmlFishingZone(ctx, asset);
+                mainHandler.post(() -> drawKmlFeaturesInBatches(type, features, 0, onComplete));
+            } catch (Exception e) {
+                e.printStackTrace();
+                mainHandler.post(() -> {
+                    loadingBaseLayers.remove(type);
+                    Toast.makeText(ctx, "KML解析失败: " + asset, Toast.LENGTH_LONG).show();
+                    notifyComplete(onComplete);
+                });
+            }
+        });
+    }
+
     private void drawKml(LayerType layerType, String kmlAsset) {
         List<Long> exist = layerManager.getLayers(layerType);
         if (exist != null && !exist.isEmpty()) {
@@ -210,10 +267,64 @@ public class MapController {
             return;
         }
 
-        mainHandler.postDelayed(() -> {
-            // 复用你原来的 KML解析绘制方法：建议你后续再拆 KmlRenderer
-            KmlRenderer.drawKmlFishingZone(ctx, earth, layerManager, layerType, lineDrawManager, planeDrawManager, kmlAsset);
-        }, 1000L);
+        if (lineDrawManager == null || planeDrawManager == null) {
+            initDrawManagers();
+        }
+        KmlRenderer.drawKmlFishingZone(ctx, earth, layerManager, layerType, lineDrawManager, planeDrawManager, kmlAsset);
+    }
+
+    private void drawKmlFeaturesInBatches(
+            LayerType layerType,
+            List<KmlRenderer.KmlFeature> features,
+            int start,
+            Runnable onComplete
+    ) {
+        if (!isReady()) {
+            loadingBaseLayers.remove(layerType);
+            notifyComplete(onComplete);
+            return;
+        }
+
+        int end = Math.min(start + KML_DRAW_BATCH_SIZE, features.size());
+        for (int i = start; i < end; i++) {
+            List<Long> elementIds = KmlRenderer.drawFeature(features.get(i), lineDrawManager, planeDrawManager);
+            layerManager.addLayer(layerType, elementIds);
+        }
+
+        if (end < features.size()) {
+            mainHandler.postDelayed(
+                    () -> drawKmlFeaturesInBatches(layerType, features, end, onComplete),
+                    KML_DRAW_BATCH_DELAY_MS
+            );
+            return;
+        }
+
+        loadingBaseLayers.remove(layerType);
+        showLayer(layerType);
+        notifyComplete(onComplete);
+    }
+
+    private String getKmlAsset(LayerType type) {
+        switch (type) {
+            case FISHING_GROUND:
+                return "yuqv.kml";
+            case NO_FISHING_LINE:
+                return "jilun.kml";
+            case COAST_LINE:
+                return "linghai.kml";
+            case CKFA:
+                return "zhonghan.kml";
+            case CJFA:
+                return "zhongri.kml";
+            default:
+                return null;
+        }
+    }
+
+    private void notifyComplete(Runnable onComplete) {
+        if (onComplete != null) {
+            onComplete.run();
+        }
     }
 
     // ====== common draw helpers ======
@@ -236,6 +347,17 @@ public class MapController {
         long id = earth.drawElement(vector, true);
         layerManager.addLayer(layerType, id);
         return id;
+    }
+
+    public void updateLocationPoint(double lon, double lat, int resId, float iconScale, float angle) {
+        if (!isReady()) {
+            return;
+        }
+        if (locationElementId > 0) {
+            removeElement(locationElementId);
+            locationElementId = -1L;
+        }
+        locationElementId = drawPoint(LayerType.LOCATION, lon, lat, resId, iconScale, angle);
     }
 
     public long drawCircle(LayerType layerType, double lon, double lat, String color, double radiusMeters, String label) {
@@ -304,14 +426,28 @@ public class MapController {
     }
 
     private byte[] getBytesFromRes(int resId, float angle) {
+        if (angle == 0f && iconBytesCache.containsKey(resId)) {
+            return iconBytesCache.get(resId);
+        }
         Bitmap bmp = BitmapFactory.decodeResource(ctx.getResources(), resId);
+        if (bmp == null) {
+            return new byte[0];
+        }
         Matrix matrix = new Matrix();
         matrix.postRotate(angle);
         Bitmap rotated = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         rotated.compress(Bitmap.CompressFormat.PNG, 100, baos);
-        return baos.toByteArray();
+        byte[] bytes = baos.toByteArray();
+        if (angle == 0f) {
+            iconBytesCache.put(resId, bytes);
+        }
+        if (rotated != bmp) {
+            rotated.recycle();
+        }
+        bmp.recycle();
+        return bytes;
     }
 
     public EarthFragment getEarth() {
@@ -323,6 +459,7 @@ public class MapController {
         if (elementId <= 0) return;
         try {
             earth.removeElementFromEarth(elementId);
+            layerManager.removeLayer(elementId);
         } catch (Throwable ignore) {
             ignore.printStackTrace();
         }

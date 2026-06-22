@@ -5,6 +5,7 @@ import com.bigemap.bmcore.constant.Constants;
 import com.bigemap.bmcore.entity.GeoPoint;
 import com.bigemap.bmcore.entity.VectorElement;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class LineDrawManager {
@@ -29,8 +30,8 @@ public class LineDrawManager {
         );
 
         line.geoPoints.addAll(points);
-        line.outlineColor = color;
-        line.outlineWidth = String.valueOf(width);
+        line.outlineColor = isEmpty(color) ? "#FFFFFFFF" : color;
+        line.outlineWidth = String.valueOf(width > 0 ? width : 2f);
         line.showLabel = false;
 
         return earthFragment.drawElement(line, true);
@@ -39,15 +40,22 @@ public class LineDrawManager {
     /**
      * 画带文字标注的线（KML 常用）
      */
-    public long drawLineWithLabel(String name, List<GeoPoint> points, String color, float width) {
+    public List<Long> drawLineWithLabel(String name, List<GeoPoint> points, String color, float width) {
+        List<Long> ids = new ArrayList<>();
         long lineId = drawLine(name, points, color, width);
+        if (lineId > 0) {
+            ids.add(lineId);
+        }
 
         if (name != null && !name.isEmpty()) {
             GeoPoint center = computeLineCenter(points);
-            drawTextLabel(name, center);
+            long labelId = drawTextLabel(name, center);
+            if (labelId > 0) {
+                ids.add(labelId);
+            }
         }
 
-        return lineId;
+        return ids;
     }
 
     /**
@@ -61,8 +69,8 @@ public class LineDrawManager {
     /**
      * 画线标签
      */
-    private void drawTextLabel(String text, GeoPoint center) {
-        if (center == null) return;
+    private long drawTextLabel(String text, GeoPoint center) {
+        if (center == null) return -1;
 
         long root = earthFragment.getRootLayerId();
         VectorElement layer = earthFragment.onCreateLayer(
@@ -85,6 +93,10 @@ public class LineDrawManager {
         label.description = text;
         label.geoPoints.add(center);
 
-        earthFragment.drawElement(label, true);
+        return earthFragment.drawElement(label, true);
+    }
+
+    private boolean isEmpty(String value) {
+        return value == null || value.trim().isEmpty();
     }
 }

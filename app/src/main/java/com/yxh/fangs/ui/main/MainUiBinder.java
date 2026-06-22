@@ -28,6 +28,7 @@ public class MainUiBinder {
     private final SmartRefreshLayout refreshLayout;
     private final View btnHistorical;
     private final View btnSetting;
+    private final View btnSpeechDictation;
     private final View btnWeather;
     private final View btnSos;
     private final View btnLayout;
@@ -46,6 +47,7 @@ public class MainUiBinder {
 
         btnHistorical = activity.findViewById(R.id.tv_historical_data);
         btnSetting = activity.findViewById(R.id.tv_parameter_settings);
+        btnSpeechDictation = activity.findViewById(R.id.tv_speech_dictation);
         btnWeather = activity.findViewById(R.id.tv_weather);
         btnSos = activity.findViewById(R.id.iv_sos);
         btnLayout = activity.findViewById(R.id.iv_layout);
@@ -104,9 +106,10 @@ public class MainUiBinder {
         noticeListAdapter.setDataList(rows);
     }
 
-    public void bindCommonClicks(Runnable openHistory, Runnable openSetting, Runnable openWeather, Runnable openSos, Runnable openLayout, Runnable locate, VolumeToggle toggle) {
+    public void bindCommonClicks(Runnable openHistory, Runnable openSetting, Runnable openSpeechDictation, Runnable openWeather, Runnable openSos, Runnable openLayout, Runnable locate, VolumeToggle toggle) {
         btnHistorical.setOnClickListener(v -> openHistory.run());
         btnSetting.setOnClickListener(v -> openSetting.run());
+        btnSpeechDictation.setOnClickListener(v -> openSpeechDictation.run());
         btnWeather.setOnClickListener(v -> openWeather.run());
         btnSos.setOnClickListener(v -> openSos.run());
         btnLayout.setOnClickListener(v -> openLayout.run());

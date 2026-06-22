@@ -19,7 +19,9 @@ import com.yxh.fangs.ui.main.MessageHandler;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class TyphoonHandler implements MessageHandler {
@@ -30,7 +32,7 @@ public class TyphoonHandler implements MessageHandler {
     private final MessageDispatcher.DispatchState state;
     private final MessageDispatcher dispatcher;
     private final Gson gson = new Gson();
-    private int drawHour = -1;
+    private final Map<String, Integer> drawHourByMsgId = new HashMap<>();
     private final NoticeElementStore elementStore;
 
     public TyphoonHandler(Context ctx, MainUiBinder ui, MapController map,
@@ -76,26 +78,34 @@ public class TyphoonHandler implements MessageHandler {
         if (TextUtils.isEmpty(msgId)) return;
         int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
         if (elementStore.contains(msgId)) {
-            if (hour == drawHour) {
+            Integer lastDrawHour = drawHourByMsgId.get(msgId);
+            if (lastDrawHour != null && lastDrawHour == hour) {
                 return;
             }
             removeByMsgId(msgId);
         }
         List<Long> ids = drawTyphoonElements(msg);
-        drawHour = hour;
+        drawHourByMsgId.put(msgId, hour);
         elementStore.put(msgId, ids);
     }
 
     public void syncCurrentTyphoonIds(Set<String> currentTyphoonMsgIds) {
         elementStore.sync(currentTyphoonMsgIds);
+        if (currentTyphoonMsgIds == null) {
+            drawHourByMsgId.clear();
+        } else {
+            drawHourByMsgId.keySet().removeIf(id -> !currentTyphoonMsgIds.contains(id));
+        }
     }
 
     public void clearAll() {
         elementStore.clearAll();
+        drawHourByMsgId.clear();
     }
 
     public void removeByMsgId(String msgId) {
         elementStore.remove(msgId);
+        drawHourByMsgId.remove(msgId);
     }
 
     /**

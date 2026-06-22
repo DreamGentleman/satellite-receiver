@@ -18,6 +18,7 @@ import com.iflytek.aikit.core.CoreListener;
 import com.iflytek.aikit.core.ErrType;
 import com.iflytek.aikit.core.LogLvl;
 import com.yxh.fangs.R;
+import com.yxh.fangs.application.AppRuntimeState;
 import com.yxh.fangs.bean.DeviceRegisterRequest;
 import com.yxh.fangs.bean.DeviceRegisterResponse;
 import com.yxh.fangs.config.AppConstants;
@@ -94,6 +95,11 @@ public class SplashActivity extends BaseActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (shouldReturnToExistingTask()) {
+            finish();
+            overridePendingTransition(0, 0);
+            return;
+        }
         setContentView(R.layout.activity_spalsh);
         tvInit = findViewById(R.id.tv_init);
         tvUsb = findViewById(R.id.tv_usb);
@@ -131,11 +137,19 @@ public class SplashActivity extends BaseActivity {
         }
     }
 
+    private boolean shouldReturnToExistingTask() {
+        Intent intent = getIntent();
+        boolean launchedFromDesktop = intent != null
+                && Intent.ACTION_MAIN.equals(intent.getAction())
+                && intent.hasCategory(Intent.CATEGORY_LAUNCHER);
+        return launchedFromDesktop && AppRuntimeState.hasEnteredMain() && !isTaskRoot();
+    }
+
     private void initAIKit() {
-        APPID = getResources().getString(R.string.appId);
-        APIKEY = getResources().getString(R.string.apiKey);
-        APISECRET = getResources().getString(R.string.apiSecret);
-        WORK_DIR = getCacheDir() + getResources().getString(R.string.workDir);
+        APPID = getResources().getString(R.string.iflytek_app_id);
+        APIKEY = getResources().getString(R.string.iflytek_aikit_api_key);
+        APISECRET = getResources().getString(R.string.iflytek_aikit_api_secret);
+        WORK_DIR = getCacheDir() + getResources().getString(R.string.iflytek_work_dir);
         File workDir = new File(WORK_DIR);
         if (!workDir.exists()) {
             workDir.mkdirs();

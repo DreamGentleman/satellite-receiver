@@ -8,6 +8,8 @@ import com.aliyun.emas.apm.crash.ApmCrashAnalysisComponent;
 import com.aliyun.emas.apm.mem.monitor.ApmMemMonitorComponent;
 import com.aliyun.emas.apm.performance.ApmPerformanceComponent;
 import com.aliyun.emas.apm.remote.log.ApmRemoteLogComponent;
+import com.iflytek.cloud.SpeechConstant;
+import com.iflytek.cloud.SpeechUtility;
 import com.yxh.fangs.R;
 import com.yxh.fangs.core.scheduler.MapEngineManager;
 import com.yxh.fangs.util.SPUtils;
@@ -19,7 +21,12 @@ public class MyApplication extends Application {
         super.onCreate();
         SPUtils.init(this);
         MapEngineManager.init(this, true);
+        initIflytekMsc();
         initAliyun();
+    }
+
+    private void initIflytekMsc() {
+        SpeechUtility.createUtility(this, SpeechConstant.APPID + "=" + getString(R.string.iflytek_app_id));
     }
 
     private void initAliyun() {
